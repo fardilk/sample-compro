@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .text-orange-main {
+    color: #f87538;
+  }
+  .bg-orange-main {
+    background-color: #f87538;
+  }
+  .border-orange-main {
+    border-color: #f87538;
+  }
+  .hover\:bg-orange-main:hover {
+    background-color: #f87538;
+  }
+  .hover\:text-orange-main:hover {
+    color: #f87538;
+  }
+  .bg-orange-dark {
+    background-color: #d45c1c;
+  }
+}
+
