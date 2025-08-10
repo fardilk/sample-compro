@@ -1,24 +1,33 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import type { HoverMenuItem } from '../../func/hoverMenu';
+import { slugify } from '../../func/slugify';
 
 interface HoverMenu2Props {
   items: HoverMenuItem[];
   // Optional: allow parent to override container classes (grid, padding, etc.)
   className?: string;
   linkBuilder?: (item: HoverMenuItem, parent?: HoverMenuItem) => string;
+  parent?: HoverMenuItem; // parent category when rendering level-2 cards
+  onNavigate?: () => void; // called when a link is clicked
 }
 
-const HoverMenu2: React.FC<HoverMenu2Props> = ({ items, className, linkBuilder }) => {
+const HoverMenu2: React.FC<HoverMenu2Props> = ({ items, className, linkBuilder, parent, onNavigate }) => {
   const containerClasses = className ?? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-8';
   return (
     <div className={containerClasses}>
       {items.map((item) => {
-        const topTo = linkBuilder ? linkBuilder(item) : (item.href ?? '#');
+        // If a linkBuilder is provided, supply parent context as 2nd arg
+        const topTo = linkBuilder
+          ? linkBuilder(item, parent)
+          : (parent
+              ? `/services/${slugify(parent.label)}/${slugify(item.label)}`
+              : `/training/${slugify(item.label)}`);
         return (
           <React.Fragment key={item.label}>
             <Link
               to={topTo}
+              onClick={onNavigate}
               className="relative flex items-start bg-white border border-gray-200 rounded-lg shadow-md px-6 py-5 hover:shadow-xl transition-shadow duration-200 group cursor-pointer"
             >
               <div className="flex items-center justify-center w-14 h-14 rounded-md bg-gradient-to-r from-blue-100 to-blue-50 mr-5">
@@ -36,11 +45,14 @@ const HoverMenu2: React.FC<HoverMenu2Props> = ({ items, className, linkBuilder }
             {item.children && item.children.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
                 {item.children.map((child) => {
-                  const childTo = linkBuilder ? linkBuilder(child, item) : (child.href ?? '#');
+                  const childTo = linkBuilder
+                    ? linkBuilder(child, item)
+                    : `/services/${slugify(item.label)}/${slugify(child.label)}`;
                   return (
                     <Link
                       key={child.label}
                       to={childTo}
+                      onClick={onNavigate}
                       className="relative flex items-start bg-white border border-gray-100 rounded-lg shadow px-5 py-4 hover:shadow-lg transition-shadow duration-200 group cursor-pointer"
                     >
                       <div className="flex items-center justify-center w-10 h-10 rounded-md bg-gradient-to-r from-green-100 to-green-50 mr-4">

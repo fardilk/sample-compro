@@ -104,7 +104,7 @@ const AboutUsPage: React.FC = () => {
 					<h2 className="text-2xl md:text-3xl font-bold mb-2">WELCOME TO EXCELLENCE PLUS INDONESIA</h2>
 					<p className="text-lg md:text-xl text-slate-700 mb-1">Innovative Solutions To Move Your Business Forward.</p>
 					<p className="text-slate-500 mb-6">About Excellence Plus Indonesia (EPI) Training &amp; Consultancy</p>
-					<div className="prose max-w-none text-slate-800">
+					<div className="space-y-3 prose max-w-none text-slate-800">
 						<p>Excellence Plus Indonesia adalah sebuah institusi yang membantu memberikan kesempatan kepada perusahaan-perusahaan dan individu-induvidu pembelajar untuk mendapatkan pembelajaran yang berkualitas. EPI yang didirikan oleh coach Edi Purnomo, SE, MM, CPHRM, CHA, bertujuan tidak hanya menghadirkan pembelajaran yang menyenangkan dan penuh makna untuk para pesertanya, akan tetapi juga membantu perusahaan menemukan talenta-talenta berkelas melalui program executive search/ head hunter. EPI juga berperan aktif dalam pengembangan sustainable tourism yang saat ini berfokus di area Indonesia Timur.</p>
 						<p>Excellece Plus Indonesia menyediakan program Public Training, in-house training, baik offline maupun online, head hunter, serta coaching. EPI berkomitmen memberikan program terbaik disesuaikan dengan kebutuhan masing-masing perusahaan dan individu yang tentunya beragam, sehingga masing-masing perusahaan atau individu akan mendapatkan manfaat maksimal.</p>
 					</div>
@@ -241,13 +241,18 @@ const AboutUsPage: React.FC = () => {
 					<h2 className="text-2xl font-bold mb-6">Our Values</h2>
 					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 						{[
-							{ title: 'Integrity', text: 'We uphold honesty and accountability in every commitment and decision.' },
-							{ title: 'Excellence', text: 'We pursue outstanding quality through continuous improvement and rigor.' },
-							{ title: 'Collaboration', text: 'We co-create with clients and teams to amplify results and learning.' },
-							{ title: 'Impact', text: 'We focus on tangible outcomes that move people and businesses forward.' },
+							{ title: 'Integrity', text: 'We uphold honesty and accountability in every commitment and decision.', icon: 'fa-solid fa-shield-alt', bg: 'bg-blue-50', textColor: 'text-blue-600' },
+							{ title: 'Excellence', text: 'We pursue outstanding quality through continuous improvement and rigor.', icon: 'fa-solid fa-star', bg: 'bg-yellow-50', textColor: 'text-yellow-600' },
+							{ title: 'Collaboration', text: 'We co-create with clients and teams to amplify results and learning.', icon: 'fa-solid fa-handshake', bg: 'bg-green-50', textColor: 'text-green-600' },
+							{ title: 'Impact', text: 'We focus on tangible outcomes that move people and businesses forward.', icon: 'fa-solid fa-bullseye', bg: 'bg-red-50', textColor: 'text-red-600' },
 						].map((v, i) => (
-							<div key={v.title} className={`rounded-lg p-5 bg-white ${i % 2 === 0 ? 'shadow-sm' : 'shadow-md'}`}>
-								<div className="font-semibold mb-1">{v.title}</div>
+							<div key={v.title} className={`rounded-lg p-5 ${v.bg} ${i % 2 === 0 ? 'shadow-sm' : 'shadow-md'}`}>
+								<div className="flex items-center gap-3 mb-3">
+									<div className={`w-12 h-12 flex items-center justify-center rounded-md ${v.bg}`}>
+										<i className={`${v.icon} ${v.textColor}`} aria-hidden="true"></i>
+									</div>
+									<div className="font-semibold text-lg">{v.title}</div>
+								</div>
 								<p className="text-slate-700 text-sm">{v.text}</p>
 							</div>
 						))}

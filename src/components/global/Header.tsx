@@ -26,11 +26,22 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
   };
 
   const buildServiceLink = (item: HoverMenuItem, parent?: HoverMenuItem): string => {
-    // Build /services/:category/:id
-    const category = parent ? parent.label : item.label; // top-level category or parent category
-    const id = parent ? item.label : (item.children?.[0]?.label ?? item.label); // child service or fallback to category
-    const catSlug = slugify(category);
+    // Determine category based on parent or item label
+    const category = parent ? parent.label : item.label;
+    const id = parent ? item.label : item.label; // Always use item label for ID
+
+    // Map category to specific slug
+    const categorySlugMap: Record<string, string> = {
+      'Training': 'training',
+      'Consultancy': 'consultancy',
+      'Coaching': 'coaching',
+      'Executive Search & Recruitment': 'executive-search',
+      'Employer of Record (EOR)': 'employer-of-record',
+    };
+
+    const catSlug = categorySlugMap[category] || slugify(category);
     const idSlug = slugify(id);
+
     return `/services/${catSlug}/${idSlug}`;
   };
 
@@ -166,13 +177,23 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
                   <div className="flex-1 h-full">
                     {/* Show level 3 menu cards for any submenu with children */}
                     {openMenuIdx !== null && activeSubIdx !== null && mainMenu[openMenuIdx].children?.[activeSubIdx]?.children && (
-                      <HoverMenu2 items={mainMenu[openMenuIdx].children[activeSubIdx].children!} linkBuilder={(item, parent) => buildServiceLink(item, parent)} />
+                      <HoverMenu2
+                        items={mainMenu[openMenuIdx].children[activeSubIdx].children!}
+                        parent={mainMenu[openMenuIdx].children[activeSubIdx]}
+                        linkBuilder={(item, parent) => buildServiceLink(item, parent)}
+                        onNavigate={() => { setOpenMenuIdx(null); setActiveSubIdx(null); }}
+                      />
                     )}
                     {/* Show cards for leaf menu items */}
                     {openMenuIdx !== null && activeSubIdx !== null &&
                       mainMenu[openMenuIdx].children?.[activeSubIdx] &&
                       !mainMenu[openMenuIdx].children?.[activeSubIdx]?.children && (
-                        <HoverMenu2 items={[mainMenu[openMenuIdx].children![activeSubIdx]]} linkBuilder={(item, parent) => buildServiceLink(item, parent)} />
+                        <HoverMenu2
+                          items={[mainMenu[openMenuIdx].children![activeSubIdx]]}
+                          parent={mainMenu[openMenuIdx].children![activeSubIdx]}
+                          linkBuilder={(item, parent) => buildServiceLink(item, parent)}
+                          onNavigate={() => { setOpenMenuIdx(null); setActiveSubIdx(null); }}
+                        />
                     )}
                   </div>
                 </div>
