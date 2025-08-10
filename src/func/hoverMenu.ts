@@ -12,25 +12,25 @@ export const mainMenu: HoverMenuItem[] = [
     children: [
       {
         label: 'Vision & Mission',
-        description: 'Our vision and mission for excellence.',
+        description: 'Our vision and mission articulate where we are headed and why we exist: to elevate people and organizations through lasting impact.',
         icon: 'fa-eye',
         href: '#vision',
       },
       {
         label: 'Our Team',
-        description: 'Meet our dedicated team members.',
+        description: 'Meet our dedicated team of practitioners, coaches, and consultants committed to your growth and measurable business outcomes.',
         icon: 'fa-users',
         href: '#team',
       },
       {
         label: 'History',
-        description: 'Our journey and milestones.',
+        description: 'Explore our journey, milestones, and the stories that shaped our expertise across industries and client partnerships since inception.',
         icon: 'fa-history',
         href: '#history',
       },
       {
         label: 'Values',
-        description: 'Core values that drive our company.',
+        description: 'The core principles guiding every engagement—integrity, excellence, collaboration, and a relentless focus on client success.',
         icon: 'fa-heart',
         href: '#values',
       },

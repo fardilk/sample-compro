@@ -1,9 +1,21 @@
-import Homepage from './pages/Homepage'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Homepage from './pages/Homepage';
+import ServicesPage from './pages/ServicesPage';
+import ServiceDetailPage from './pages/ServiceDetailPage';
+import AboutUsPage from './pages/AboutUsPage';
 
 function App() {
   return (
-    <Homepage />
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Homepage />} />
+        <Route path="/about-us" element={<AboutUsPage />} />
+        <Route path="/services" element={<ServicesPage />} />
+        <Route path="/services/:category/:id" element={<ServiceDetailPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
