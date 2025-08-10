@@ -57,6 +57,13 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
     return `/about-us#${toId}`;
   };
 
+  const buildResourcesLink = (item: HoverMenuItem): string => {
+    const label = item.label.toLowerCase();
+    if (label === 'blog') return '/blog';
+    // Fallback to provided href (can be external) or '#'
+    return item.href ?? '#';
+  };
+
   return (
     <>
       <FontAwesome />
@@ -147,7 +154,9 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
                       linkBuilder={(item) => (
                         mainMenu[openMenuIdx]?.label === 'Who We Are'
                           ? buildWhoWeAreLink(item)
-                          : item.href ?? '#'
+                          : mainMenu[openMenuIdx]?.label === 'Resources'
+                            ? buildResourcesLink(item)
+                            : (item.href ?? '#')
                       )}
                     />
                   </div>
