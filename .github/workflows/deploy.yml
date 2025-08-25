@@ -19,15 +19,26 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Decode SSH key (from base64 secret)
+      - name: Prepare SSH key (support base64 or raw)
         id: decode_ssh_key
         env:
           VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
+          VPS_KEY: ${{ secrets.VPS_KEY }}
         run: |
-          if [ -z "$VPS_KEY_B64" ]; then echo 'VPS_KEY_B64 secret is empty' && exit 1; fi
-          echo "$VPS_KEY_B64" | base64 -d > /tmp/deploy_key
+          set -e
+          if [ -n "$VPS_KEY_B64" ]; then
+            echo "Using VPS_KEY_B64 (base64) secret"
+            echo "$VPS_KEY_B64" | base64 -d > /tmp/deploy_key
+          elif [ -n "$VPS_KEY" ]; then
+            echo "Using VPS_KEY (raw) secret"
+            # write raw key (preserve newlines)
+            printf "%s" "$VPS_KEY" > /tmp/deploy_key
+          else
+            echo "Neither VPS_KEY_B64 nor VPS_KEY is set" >&2
+            exit 1
+          fi
           chmod 600 /tmp/deploy_key
-          # expose decoded key as output for subsequent steps
+          # expose decoded key content as an output (escape newlines)
           KEY_CONTENT=$(sed ':a;N;$!ba;s/\n/%0A/g' /tmp/deploy_key)
           echo "ssh_key=$KEY_CONTENT" >> $GITHUB_OUTPUT
 
