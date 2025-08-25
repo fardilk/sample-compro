@@ -1,8 +1,8 @@
 name: CI/CD Deploy to VPS
 
 on:
-  workflow_dispatch:          # allow manual trigger from GitHub UI
-  push:                       # trigger when pushing to main change
+  workflow_dispatch:          # manual trigger from GitHub UI
+  push:                       # trigger when pushing to main
     branches:
       - main
 
@@ -20,29 +20,14 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Prepare SSH key (support base64 or raw)
-        id: decode_ssh_key
+      - name: Prepare SSH key (base64 only)
+        run: |
+          echo "$VPS_KEY_B64" | base64 -d > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
         env:
           VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
-          VPS_KEY: ${{ secrets.VPS_KEY }}
-        run: |
-          set -e
-          if [ -n "$VPS_KEY_B64" ]; then
-            echo "Using VPS_KEY_B64 (base64) secret"
-            echo "$VPS_KEY_B64" | base64 -d > /tmp/deploy_key
-          elif [ -n "$VPS_KEY" ]; then
-            echo "Using VPS_KEY (raw) secret"
-            printf "%s" "$VPS_KEY" > /tmp/deploy_key
-          else
-            echo "Neither VPS_KEY_B64 nor VPS_KEY is set" >&2
-            exit 1
-          fi
-          chmod 600 /tmp/deploy_key
-          KEY_CONTENT=$(sed ':a;N;$!ba;s/\n/%0A/g' /tmp/deploy_key)
-          echo "ssh_key=$KEY_CONTENT" >> $GITHUB_OUTPUT
 
       - name: Test SSH connectivity (debug)
-        if: always()
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
@@ -62,7 +47,7 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key: ${{ steps.decode_ssh_key.outputs.ssh_key }}
+          key_path: /tmp/deploy_key
           script: |
             rm -rf /var/www/compro1/dist
             mkdir -p /var/www/compro1/dist
@@ -72,6 +57,6 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key: ${{ steps.decode_ssh_key.outputs.ssh_key }}
+          key_path: /tmp/deploy_key
           source: "dist/*"
           target: "/var/www/compro1/dist"
