@@ -19,17 +19,26 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Decode SSH key (from base64 secret)
+        id: decode_ssh_key
+        env:
+          VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
+        run: |
+          if [ -z "$VPS_KEY_B64" ]; then echo 'VPS_KEY_B64 secret is empty' && exit 1; fi
+          echo "$VPS_KEY_B64" | base64 -d > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
+          # expose decoded key as output for subsequent steps
+          KEY_CONTENT=$(sed ':a;N;$!ba;s/\n/%0A/g' /tmp/deploy_key)
+          echo "ssh_key=$KEY_CONTENT" >> $GITHUB_OUTPUT
+
       - name: Test SSH connectivity (debug)
         if: always()
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_KEY: ${{ secrets.VPS_KEY }}
         run: |
           echo "Testing SSH connectivity to $VPS_USER@$VPS_HOST"
-          # write key to a temp file and restrict permissions
-          echo "$VPS_KEY" > /tmp/deploy_key && chmod 600 /tmp/deploy_key
-          # try a simple command
+          # use the decoded key file
           ssh -o StrictHostKeyChecking=no -i /tmp/deploy_key $VPS_USER@$VPS_HOST 'echo SSH_OK' || (echo 'SSH test failed' && exit 1)
           echo 'SSH connectivity OK'
 
@@ -44,7 +53,7 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_KEY }}
+          key: ${{ steps.decode_ssh_key.outputs.ssh_key }}
           script: |
             rm -rf /var/www/compro1/dist
             mkdir -p /var/www/compro1/dist
@@ -54,6 +63,6 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_KEY }}
+          key: ${{ steps.decode_ssh_key.outputs.ssh_key }}
           source: "dist/*"
           target: "/var/www/compro1/dist"
