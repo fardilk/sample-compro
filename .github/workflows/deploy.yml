@@ -1,9 +1,12 @@
 name: CI/CD Deploy to VPS
 
 on:
-  push:
-    branches:
-      - main
+  schedule:
+    - cron: "0 14 */2 * *"   # run every 2 days at 21:00 WIB (14:00 UTC)
+  workflow_dispatch:          # allow manual trigger if needed
+  # push:                     # optional, keep if you also want on push
+  #   branches:
+  #     - main
 
 jobs:
   build-and-deploy:
@@ -31,14 +34,12 @@ jobs:
             echo "$VPS_KEY_B64" | base64 -d > /tmp/deploy_key
           elif [ -n "$VPS_KEY" ]; then
             echo "Using VPS_KEY (raw) secret"
-            # write raw key (preserve newlines)
             printf "%s" "$VPS_KEY" > /tmp/deploy_key
           else
             echo "Neither VPS_KEY_B64 nor VPS_KEY is set" >&2
             exit 1
           fi
           chmod 600 /tmp/deploy_key
-          # expose decoded key content as an output (escape newlines)
           KEY_CONTENT=$(sed ':a;N;$!ba;s/\n/%0A/g' /tmp/deploy_key)
           echo "ssh_key=$KEY_CONTENT" >> $GITHUB_OUTPUT
 
@@ -49,7 +50,6 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           echo "Testing SSH connectivity to $VPS_USER@$VPS_HOST"
-          # use the decoded key file
           ssh -o StrictHostKeyChecking=no -i /tmp/deploy_key $VPS_USER@$VPS_HOST 'echo SSH_OK' || (echo 'SSH test failed' && exit 1)
           echo 'SSH connectivity OK'
 
