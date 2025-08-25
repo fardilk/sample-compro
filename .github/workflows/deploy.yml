@@ -1,8 +1,8 @@
 name: CI/CD Deploy to VPS
 
 on:
-  workflow_dispatch:
-  push:
+  workflow_dispatch:      # manual trigger
+  push:                   # otomatis saat push ke main
     branches: [ main ]
 
 jobs:
@@ -20,15 +20,16 @@ jobs:
           cache: 'npm'
 
       - name: Prepare SSH key (robust base64 decode)
+        shell: bash
         env:
           VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
         run: |
-          set -e
-          # bersihkan whitespace dan decode; -i/--ignore-garbage abaikan karakter non-base64
-          printf "%s" "$VPS_KEY_B64" | tr -d '\r\n ' | base64 -di > /tmp/deploy_key
+          set -euo pipefail
+          # decode base64 (abaikan karakter non-base64 + bersihkan whitespace)
+          printf "%s" "$VPS_KEY_B64" | tr -d '\r\n ' | base64 --decode --ignore-garbage > /tmp/deploy_key
           chmod 600 /tmp/deploy_key
-          # sanity check: pastikan key valid (tidak menampilkan isi)
-          ssh-keygen -yf /tmp/deploy_key > /dev/null
+          # sanity check: pastikan private key valid
+          ssh-keygen -y -f /tmp/deploy_key >/dev/null 2>&1 || { echo "Private key invalid after decode"; exit 255; }
 
       - name: Test SSH connectivity (debug)
         env:
@@ -36,7 +37,7 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           echo "Testing SSH connectivity to $VPS_USER@$VPS_HOST"
-          ssh -o StrictHostKeyChecking=no -i /tmp/deploy_key $VPS_USER@$VPS_HOST 'echo SSH_OK' || (echo 'SSH test failed' && exit 1)
+          ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -i /tmp/deploy_key $VPS_USER@$VPS_HOST 'echo SSH_OK' || (echo 'SSH test failed' && exit 1)
           echo 'SSH connectivity OK'
 
       - name: Install dependencies
@@ -51,6 +52,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key_path: /tmp/deploy_key
+          # port: 22   # uncomment kalau pakai port custom, ganti angkanya
           script: |
             rm -rf /var/www/compro1/dist
             mkdir -p /var/www/compro1/dist
@@ -61,5 +63,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key_path: /tmp/deploy_key
+          # port: 22   # samakan kalau SSH di port custom
           source: "dist/*"
           target: "/var/www/compro1/dist"
+    
