@@ -1,9 +1,9 @@
-name: CI/CD Deploy
+name: CI/CD Deploy to VPS
 
 on:
   push:
     branches:
-      - main   # jalan tiap push ke branch main
+      - main
 
 jobs:
   build-and-deploy:
@@ -25,21 +25,21 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Deploy to VPS via SSH
+      - name: Clean dist di VPS
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_KEY }}
+          host: "${{ secrets.VPS_HOST }}"
+          username: "${{ secrets.VPS_USER }}"
+          key: "${{ secrets.VPS_KEY }}"
           script: |
-            cd /var/www/compro1
-            rm -rf dist
-            mkdir dist
-      - name: Upload dist files
+            rm -rf /var/www/compro1/dist
+            mkdir -p /var/www/compro1/dist
+
+      - name: Upload dist ke VPS
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_KEY }}
+          host: "${{ secrets.VPS_HOST }}"
+          username: "${{ secrets.VPS_USER }}"
+          key: "${{ secrets.VPS_KEY }}"
           source: "dist/*"
           target: "/var/www/compro1/dist"
