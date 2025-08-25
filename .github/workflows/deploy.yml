@@ -1,8 +1,8 @@
 name: CI/CD Deploy to VPS
 
 on:
-  workflow_dispatch:      # manual trigger
-  push:                   # auto saat push ke main
+  workflow_dispatch:
+  push:
     branches: [ main ]
 
 jobs:
@@ -19,26 +19,13 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      # (opsional tapi membantu) pastikan secrets terisi
-      - name: Assert required secrets exist
-        shell: bash
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
-        run: |
-          set -e
-          for n in VPS_HOST VPS_USER VPS_KEY_B64; do
-            [ -n "${!n}" ] && echo "✅ $n present" || { echo "❌ Missing secret: $n"; exit 1; }
-          done
-
       - name: Prepare SSH key (robust base64 decode + debug)
         shell: bash
         env:
           VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
         run: |
           set -euo pipefail
-          # decode ke file sementara (host)
+          # decode ke host runner
           printf "%s" "$VPS_KEY_B64" | tr -d '\r\n ' | base64 --decode --ignore-garbage > /tmp/deploy_key
           chmod 600 /tmp/deploy_key
 
@@ -52,9 +39,9 @@ jobs:
           echo "=== DEBUG: Fingerprint ==="
           ssh-keygen -lf /tmp/deploy_key.pub
 
-          # ⬇️ penting: copy ke workspace (akan terlihat di container sebagai /github/workspace/deploy_key)
+          # ⬇️ penting: taruh di workspace (ter-mount ke container) & longgarkan permission agar bisa dibaca
           cp /tmp/deploy_key "$GITHUB_WORKSPACE/deploy_key"
-          chmod 600 "$GITHUB_WORKSPACE/deploy_key"
+          chmod 644 "$GITHUB_WORKSPACE/deploy_key"
 
       - name: Test SSH connectivity (debug)
         env:
@@ -76,8 +63,8 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key_path: /github/workspace/deploy_key   # <- path di dalam container
-          # port: 22                                # uncomment jika pakai port custom
+          key_path: /github/workspace/deploy_key   # file di dalam container
+          # port: 22                                # uncomment & ganti jika pakai port custom
           script: |
             rm -rf /var/www/compro1/dist
             mkdir -p /var/www/compro1/dist
@@ -87,17 +74,7 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key_path: /github/workspace/deploy_key   # <- path di dalam container
+          key_path: /github/workspace/deploy_key   # file di dalam container
           # port: 22
           source: "dist/*"
           target: "/var/www/compro1/dist"
-
-      # - name: (Opsional) Restart service
-      #   uses: appleboy/ssh-action@v1.0.0
-      #   with:
-      #     host: ${{ secrets.VPS_HOST }}
-      #     username: ${{ secrets.VPS_USER }}
-      #     key_path: /github/workspace/deploy_key
-      #     script: |
-      #       sudo systemctl reload nginx || true
-      #       # pm2 restart your-app || true
