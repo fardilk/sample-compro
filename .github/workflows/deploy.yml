@@ -2,7 +2,7 @@ name: CI/CD Deploy to VPS
 
 on:
   workflow_dispatch:          # allow manual trigger from GitHub UI
-  push:                       # trigger when pushing to main
+  push:                       # trigger when pushing to main change
     branches:
       - main
 
