@@ -1,12 +1,10 @@
 name: CI/CD Deploy to VPS
 
 on:
-  schedule:
-    - cron: "0 14 */2 * *"   # run every 2 days at 21:00 WIB (14:00 UTC)
-  workflow_dispatch:          # allow manual trigger if needed
-  # push:                     # optional, keep if you also want on push
-  #   branches:
-  #     - main
+  workflow_dispatch:          # allow manual trigger from GitHub UI
+  push:                       # trigger when pushing to main
+    branches:
+      - main
 
 jobs:
   build-and-deploy:
