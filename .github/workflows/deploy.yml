@@ -19,27 +19,28 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Assert required secrets exist
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
+        run: |
+          set -e
+          for n in VPS_HOST VPS_USER VPS_KEY_B64; do
+            [ -n "${!n}" ] && echo "✅ $n present" || { echo "❌ Missing secret: $n"; exit 1; }
+          done
+
       - name: Prepare SSH key (robust base64 decode + debug)
         shell: bash
         env:
           VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
         run: |
           set -euo pipefail
-          # decode ke host runner
           printf "%s" "$VPS_KEY_B64" | tr -d '\r\n ' | base64 --decode --ignore-garbage > /tmp/deploy_key
           chmod 600 /tmp/deploy_key
-
-          echo "=== DEBUG: Private key info ==="
-          echo "Byte size: $(wc -c < /tmp/deploy_key)"
-          file -b /tmp/deploy_key || true
-
-          # sanity check
           ssh-keygen -y -f /tmp/deploy_key > /tmp/deploy_key.pub 2>/dev/null || { echo "❌ Private key invalid after decode"; exit 255; }
-          echo "✅ Private key decoded successfully"
-          echo "=== DEBUG: Fingerprint ==="
-          ssh-keygen -lf /tmp/deploy_key.pub
-
-          # ⬇️ penting: taruh di workspace (ter-mount ke container) & longgarkan permission agar bisa dibaca
+          # copy ke workspace supaya terbaca di container appleboy/*
           cp /tmp/deploy_key "$GITHUB_WORKSPACE/deploy_key"
           chmod 644 "$GITHUB_WORKSPACE/deploy_key"
 
@@ -63,18 +64,18 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key_path: /github/workspace/deploy_key   # file di dalam container
-          # port: 22                                # uncomment & ganti jika pakai port custom
+          key_path: /github/workspace/deploy_key
           script: |
             rm -rf /var/www/compro1/dist
             mkdir -p /var/www/compro1/dist
 
-      - name: Upload dist ke VPS
+      - name: Upload dist ke VPS (no nested dist)
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key_path: /github/workspace/deploy_key   # file di dalam container
-          # port: 22
-          source: "dist/*"
+          key_path: /github/workspace/deploy_key
+          source: "dist/**"                 # kirim isi di dalam dist
           target: "/var/www/compro1/dist"
+          strip_components: 1               # buang lapisan 'dist' agar tidak jadi dist/dist
+          # port: 22                        # uncomment & ganti jika pakai port custom
