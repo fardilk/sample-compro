@@ -1,0 +1,81 @@
+name: Build and Deploy (Prod)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: ghcr.io/fardilk/excellenceplusweb
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+
+    steps:
+      # 🧩 Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 🔐 Pastikan secrets tersedia
+      - name: Assert required secrets exist
+        shell: bash
+        env:
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
+          VPS_PROD_PORT: ${{ secrets.VPS_PROD_PORT }}
+        run: |
+          set -e
+          for n in GHCR_PAT VPS_HOST VPS_USER VPS_KEY_B64 VPS_PROD_PORT; do
+            [ -n "${!n}" ] && echo "✅ $n present" || { echo "❌ Missing secret: $n"; exit 1; }
+          done
+
+      # 🐳 Build & Push Docker image ke GHCR
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        run: echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u fardilk --password-stdin
+
+      - name: Build and Push Docker image (prod)
+        run: |
+          TAG_SHA=${GITHUB_SHA::7}
+          docker build -t $IMAGE_NAME:prod-$TAG_SHA -t $IMAGE_NAME:prod-latest .
+          docker push $IMAGE_NAME:prod-$TAG_SHA
+          docker push $IMAGE_NAME:prod-latest
+
+      # 🗝️ Decode SSH key
+      - name: Prepare SSH key
+        shell: bash
+        env:
+          VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
+        run: |
+          echo "$VPS_KEY_B64" | base64 -d > key.pem
+          chmod 600 key.pem
+
+      # 🚀 Deploy ke VPS
+      - name: Deploy to VPS (Prod)
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          port: ${{ secrets.VPS_PROD_PORT }}
+          key_path: key.pem
+          script: |
+            echo "🛠 Pulling latest image..."
+            docker login ghcr.io -u fardilk -p ${{ secrets.GHCR_PAT }}
+            docker pull ghcr.io/fardilk/excellenceplusweb:prod-latest
+
+            echo "🧹 Cleaning up old container..."
+            docker stop excellenceplusweb-prod || true
+            docker rm excellenceplusweb-prod || true
+
+            echo "🚀 Starting new container..."
+            docker run -d --name excellenceplusweb-prod \
+              -p 80:80 \
+              --restart always \
+              ghcr.io/fardilk/excellenceplusweb:prod-latest
