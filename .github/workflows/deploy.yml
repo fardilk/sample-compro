@@ -43,15 +43,16 @@ jobs:
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
-      - name: Deploy to VPS (Pull & Run container)
+      - name: Deploy to VPS via Docker
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key_path: key.pem
+          key_path: /github/workspace/deploy_key
           script: |
             docker login ghcr.io -u fardilk -p ${{ secrets.GHCR_PAT }}
             docker pull ghcr.io/fardilk/excellenceplusweb:latest
             docker stop excellenceplusweb || true
             docker rm excellenceplusweb || true
             docker run -d --name excellenceplusweb -p 80:80 ghcr.io/fardilk/excellenceplusweb:latest
+
