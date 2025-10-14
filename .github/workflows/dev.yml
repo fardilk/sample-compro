@@ -1,4 +1,4 @@
-name: Deploy (Dev)
+name: Build (Dev)
 
 on:
   push:
@@ -9,7 +9,7 @@ env:
   IMAGE_NAME: ghcr.io/fardilk/excellenceplusweb
 
 jobs:
-  build-and-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
     environment:
       name: dev
@@ -18,46 +18,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Assert required secrets exist (dev)
+      - name: Assert required secrets exist
         shell: bash
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
-          GHCR_PAT: ${{ secrets.GHCR_PAT }}
         run: |
           set -e
-          for n in VPS_HOST VPS_USER VPS_KEY_B64 GHCR_PAT; do
+          for n in GHCR_PAT; do
             [ -n "${!n}" ] && echo "✅ $n present" || { echo "❌ Missing secret: $n"; exit 1; }
           done
-
-      # 🧩 Fix path + newline handling (biar appleboy bisa baca)
-      - name: Prepare SSH key
-        id: prep_key
-        shell: bash
-        env:
-          VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
-        run: |
-          echo "🔧 Decoding SSH key"
-          echo "${VPS_KEY_B64}" | tr -d '\r\n ' | base64 --decode --ignore-garbage > $GITHUB_WORKSPACE/deploy_key
-          chmod 600 $GITHUB_WORKSPACE/deploy_key
-          ssh-keygen -y -f $GITHUB_WORKSPACE/deploy_key > /dev/null 2>&1 || { echo "❌ Invalid SSH private key"; exit 255; }
-          FP=$(ssh-keygen -lf $GITHUB_WORKSPACE/deploy_key | awk '{print $2}')
-          echo "✅ SSH key fingerprint: $FP"
-          echo "fingerprint=$FP" >> "$GITHUB_OUTPUT"
-
-      # 🧠 Debug test SSH langsung (biar tahu kalau key salah / root diblok)
-      - name: Test SSH connectivity (debug)
-        shell: bash
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_PORT: ${{ secrets.VPS_DEV_PORT }}
-        run: |
-          set -e
-          echo "🔍 Testing SSH to ${VPS_USER}@${VPS_HOST}:${VPS_PORT:-22}"
-          ssh -v -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -p "${VPS_PORT:-22}" -i $GITHUB_WORKSPACE/deploy_key \
-            "${VPS_USER}@${VPS_HOST}" "echo SSH_OK"
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -71,20 +38,3 @@ jobs:
           docker build -t $IMAGE_NAME:dev-$TAG_SHA -t $IMAGE_NAME:dev-latest .
           docker push $IMAGE_NAME:dev-$TAG_SHA
           docker push $IMAGE_NAME:dev-latest
-
-      # 🚀 Deploy pakai appleboy (sekarang key_path benar)
-      - name: Deploy to Dev VPS via Docker
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key_path: ${{ github.workspace }}/deploy_key
-          port: ${{ secrets.VPS_DEV_PORT }}
-          script: |
-            set -e
-            echo "🐳 Deploying to dev server..."
-            docker login ghcr.io -u fardilk -p ${{ secrets.GHCR_PAT }}
-            docker pull $IMAGE_NAME:dev-latest
-            docker stop excellenceplusweb-dev || true
-            docker rm excellenceplusweb-dev || true
-            docker run -d --name excellenceplusweb-dev -p 8080:80 $IMAGE_NAME:dev-latest
