@@ -21,9 +21,9 @@ jobs:
       - name: Assert required secrets exist (dev)
         shell: bash
         env:
-          DEV_VPS_HOST: ${{ secrets.DEV_VPS_HOST }}
-          DEV_VPS_USER: ${{ secrets.DEV_VPS_USER }}
-          DEV_VPS_KEY_B64: ${{ secrets.DEV_VPS_KEY_B64 }}
+          DEV_VPS_HOST: ${{ secrets.VPS_HOST }}
+          DEV_VPS_USER: ${{ secrets.VPS_USER }}
+          DEV_VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
           GHCR_PAT: ${{ secrets.GHCR_PAT }}
         run: |
           set -e
@@ -35,8 +35,7 @@ jobs:
         id: prep_key
         shell: bash
         env:
-          DEV_VPS_KEY_B64: ${{ secrets.DEV_VPS_KEY_B64 }}
-          DEV_VPS_KEY: ${{ secrets.DEV_VPS_KEY }}
+          DEV_VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
         run: |
           set -euo pipefail
           if [ -n "${DEV_VPS_KEY_B64:-}" ]; then
@@ -56,9 +55,9 @@ jobs:
       - name: Test SSH connectivity (debug)
         shell: bash
         env:
-          DEV_VPS_HOST: ${{ secrets.DEV_VPS_HOST }}
-          DEV_VPS_USER: ${{ secrets.DEV_VPS_USER }}
-          DEV_VPS_PORT: ${{ secrets.DEV_VPS_PORT }}
+          DEV_VPS_HOST: ${{ secrets.VPS_HOST }}
+          DEV_VPS_USER: ${{ secrets.VPS_USER }}
+          DEV_VPS_PORT: ${{ secrets.VPS_DEV_PORT }}
         run: |
           set -e
           PORT_OPT=""; [ -n "${DEV_VPS_PORT:-}" ] && PORT_OPT="-p $DEV_VPS_PORT"
@@ -82,10 +81,10 @@ jobs:
       - name: Deploy to Dev VPS via Docker
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.DEV_VPS_HOST }}
-          username: ${{ secrets.DEV_VPS_USER }}
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
           key_path: key.pem
-          port: ${{ secrets.DEV_VPS_PORT }}
+          port: ${{ secrets.VPS_DEV_PORT }}
           script: |
             set -e
             docker login ghcr.io -u fardilk -p ${{ secrets.GHCR_PAT }}
