@@ -63,7 +63,7 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          port: ${{ secrets.VPS_PROD_PORT }}
+          port: ${{ secrets.VPS_PROD_PORT }}  # ini harus 22
           key_path: key.pem
           script: |
             echo "🛠 Pulling latest image..."
@@ -79,3 +79,4 @@ jobs:
               -p 80:80 \
               --restart always \
               ghcr.io/fardilk/excellenceplusweb:prod-latest
+
