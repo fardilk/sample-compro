@@ -35,7 +35,6 @@ jobs:
         shell: bash
         env:
           VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
-          VPS_KEY: ${{ secrets.VPS_KEY }}
         run: |
           set -euo pipefail
           if [ -n "${VPS_KEY_B64:-}" ]; then
@@ -84,7 +83,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key_path: key.pem
-          port: ${{ secrets.VPS_PORT }}
+          port: ${{ secrets.VPS_PROD_PORT }}
           script: |
             set -e
             docker login ghcr.io -u fardilk -p ${{ secrets.GHCR_PAT }}
