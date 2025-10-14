@@ -1,33 +1,70 @@
-name: CI/CD Build & Deploy (DEV - Docker)
+name: Deploy (Dev)
 
 on:
   push:
     branches: [ dev ]
   workflow_dispatch:
 
+env:
+  IMAGE_NAME: ghcr.io/fardilk/excellenceplusweb
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: dev
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Assert required secrets exist
+      - name: Assert required secrets exist (dev)
+        shell: bash
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
+          DEV_VPS_HOST: ${{ secrets.DEV_VPS_HOST }}
+          DEV_VPS_USER: ${{ secrets.DEV_VPS_USER }}
+          DEV_VPS_KEY_B64: ${{ secrets.DEV_VPS_KEY_B64 }}
           GHCR_PAT: ${{ secrets.GHCR_PAT }}
         run: |
-          for n in VPS_HOST VPS_USER VPS_KEY_B64 GHCR_PAT; do
+          set -e
+          for n in DEV_VPS_HOST DEV_VPS_USER DEV_VPS_KEY_B64 GHCR_PAT; do
             [ -n "${!n}" ] && echo "✅ $n present" || { echo "❌ Missing secret: $n"; exit 1; }
           done
 
-      - name: Prepare SSH key
+      - name: Prepare SSH key (base64 or raw)
+        id: prep_key
+        shell: bash
+        env:
+          DEV_VPS_KEY_B64: ${{ secrets.DEV_VPS_KEY_B64 }}
+          DEV_VPS_KEY: ${{ secrets.DEV_VPS_KEY }}
         run: |
-          echo "${{ secrets.VPS_KEY_B64 }}" | base64 -d > $GITHUB_WORKSPACE/deploy_key
-          chmod 600 $GITHUB_WORKSPACE/deploy_key
+          set -euo pipefail
+          if [ -n "${DEV_VPS_KEY_B64:-}" ]; then
+            printf "%s" "$DEV_VPS_KEY_B64" | tr -d '\r\n ' | base64 --decode --ignore-garbage > key.pem
+          elif [ -n "${DEV_VPS_KEY:-}" ]; then
+            printf "%s" "$DEV_VPS_KEY" > key.pem
+          else
+            echo "❌ Neither DEV_VPS_KEY_B64 nor DEV_VPS_KEY is set" >&2
+            exit 1
+          fi
+          chmod 600 key.pem
+          ssh-keygen -y -f key.pem > /dev/null 2>&1 || { echo "❌ Invalid private key" >&2; exit 255; }
+          FP=$(ssh-keygen -lf key.pem | awk '{print $2}')
+          echo "SSH key fingerprint: $FP"
+          echo "fingerprint=$FP" >> "$GITHUB_OUTPUT"
+
+      - name: Test SSH connectivity (debug)
+        shell: bash
+        env:
+          DEV_VPS_HOST: ${{ secrets.DEV_VPS_HOST }}
+          DEV_VPS_USER: ${{ secrets.DEV_VPS_USER }}
+          DEV_VPS_PORT: ${{ secrets.DEV_VPS_PORT }}
+        run: |
+          set -e
+          PORT_OPT=""; [ -n "${DEV_VPS_PORT:-}" ] && PORT_OPT="-p $DEV_VPS_PORT"
+          echo "Testing SSH to ${DEV_VPS_USER}@${DEV_VPS_HOST} ${DEV_VPS_PORT:+on port $DEV_VPS_PORT}"
+          echo "Using SSH key fingerprint: ${{ steps.prep_key.outputs.fingerprint }}"
+          ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=no $PORT_OPT -i key.pem "$DEV_VPS_USER@$DEV_VPS_HOST" 'echo SSH_OK'
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -35,21 +72,25 @@ jobs:
       - name: Login to GHCR
         run: echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u fardilk --password-stdin
 
-      - name: Build and Push Docker image to GHCR (dev)
+      - name: Build and Push Docker image (dev)
         run: |
-          IMAGE_NAME=ghcr.io/fardilk/excellenceplusweb:dev
-          docker build -t $IMAGE_NAME .
-          docker push $IMAGE_NAME
+          TAG_SHA=${GITHUB_SHA::7}
+          docker build -t $IMAGE_NAME:dev-$TAG_SHA -t $IMAGE_NAME:dev-latest .
+          docker push $IMAGE_NAME:dev-$TAG_SHA
+          docker push $IMAGE_NAME:dev-latest
 
-      - name: Deploy to VPS via Docker (dev)
+      - name: Deploy to Dev VPS via Docker
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key_path: /github/workspace/deploy_key
+          host: ${{ secrets.DEV_VPS_HOST }}
+          username: ${{ secrets.DEV_VPS_USER }}
+          key_path: key.pem
+          port: ${{ secrets.DEV_VPS_PORT }}
           script: |
+            set -e
             docker login ghcr.io -u fardilk -p ${{ secrets.GHCR_PAT }}
-            docker pull ghcr.io/fardilk/excellenceplusweb:dev
+            docker pull $IMAGE_NAME:dev-latest
             docker stop excellenceplusweb-dev || true
             docker rm excellenceplusweb-dev || true
-            docker run -d --name excellenceplusweb-dev -p 8080:80 ghcr.io/fardilk/excellenceplusweb:dev
+            DEV_HTTP_PORT=${DEV_HTTP_PORT:-8080}
+            docker run -d --name excellenceplusweb-dev -p ${DEV_HTTP_PORT}:80 $IMAGE_NAME:dev-latest

@@ -1,22 +1,69 @@
-name: CI/CD Build & Deploy (PROD - Docker)
+name: Deploy (Prod)
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  IMAGE_NAME: ghcr.io/fardilk/excellenceplusweb
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Prepare SSH key
+      - name: Assert required secrets exist (prod)
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
         run: |
-          echo "${{ secrets.VPS_KEY_B64 }}" | base64 -d > $GITHUB_WORKSPACE/deploy_key
-          chmod 600 $GITHUB_WORKSPACE/deploy_key
+          set -e
+          for n in VPS_HOST VPS_USER VPS_KEY_B64 GHCR_PAT; do
+            [ -n "${!n}" ] && echo "✅ $n present" || { echo "❌ Missing secret: $n"; exit 1; }
+          done
+
+      - name: Prepare SSH key (base64 or raw)
+        id: prep_key
+        shell: bash
+        env:
+          VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
+          VPS_KEY: ${{ secrets.VPS_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -n "${VPS_KEY_B64:-}" ]; then
+            printf "%s" "$VPS_KEY_B64" | tr -d '\r\n ' | base64 --decode --ignore-garbage > key.pem
+          elif [ -n "${VPS_KEY:-}" ]; then
+            printf "%s" "$VPS_KEY" > key.pem
+          else
+            echo "❌ Neither VPS_KEY_B64 nor VPS_KEY is set" >&2
+            exit 1
+          fi
+          chmod 600 key.pem
+          ssh-keygen -y -f key.pem > /dev/null 2>&1 || { echo "❌ Invalid private key" >&2; exit 255; }
+          FP=$(ssh-keygen -lf key.pem | awk '{print $2}')
+          echo "SSH key fingerprint: $FP"
+          echo "fingerprint=$FP" >> "$GITHUB_OUTPUT"
+
+      - name: Test SSH connectivity (debug)
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          set -e
+          PORT_OPT=""; [ -n "${VPS_PORT:-}" ] && PORT_OPT="-p $VPS_PORT"
+          echo "Testing SSH to ${VPS_USER}@${VPS_HOST} ${VPS_PORT:+on port $VPS_PORT}"
+          echo "Using SSH key fingerprint: ${{ steps.prep_key.outputs.fingerprint }}"
+          ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=no $PORT_OPT -i key.pem "$VPS_USER@$VPS_HOST" 'echo SSH_OK'
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -24,22 +71,26 @@ jobs:
       - name: Login to GHCR
         run: echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u fardilk --password-stdin
 
-      - name: Build and Push Docker image to GHCR (prod)
+      - name: Build and Push Docker image (prod)
         run: |
-          IMAGE_NAME=ghcr.io/fardilk/excellenceplusweb:latest
-          docker build -t $IMAGE_NAME .
-          docker push $IMAGE_NAME
+          TAG_SHA=${GITHUB_SHA::7}
+          docker build -t $IMAGE_NAME:prod-$TAG_SHA -t $IMAGE_NAME:prod-latest .
+          docker push $IMAGE_NAME:prod-$TAG_SHA
+          docker push $IMAGE_NAME:prod-latest
 
-      - name: Deploy to VPS via Docker (prod)
+      - name: Deploy to Prod VPS via Docker
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key_path: /github/workspace/deploy_key
+          key_path: key.pem
+          port: ${{ secrets.VPS_PORT }}
           script: |
+            set -e
             docker login ghcr.io -u fardilk -p ${{ secrets.GHCR_PAT }}
-            docker pull ghcr.io/fardilk/excellenceplusweb:latest
+            docker pull $IMAGE_NAME:prod-latest
             docker stop excellenceplusweb || true
             docker rm excellenceplusweb || true
-            docker run -d --name excellenceplusweb -p 80:80 ghcr.io/fardilk/excellenceplusweb:latest
+            HTTP_PORT=${HTTP_PORT:-80}
+            docker run -d --name excellenceplusweb -p ${HTTP_PORT}:80 $IMAGE_NAME:prod-latest
 
