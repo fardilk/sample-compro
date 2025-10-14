@@ -26,6 +26,10 @@ jobs:
             [ -n "${!n}" ] && echo "✅ $n present" || { echo "❌ Missing secret: $n"; exit 1; }
           done
 
+      - name: Assert required secrets exist
+        run: |
+          echo "Secrets visible: ${{ toJson(secrets) }}"
+
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
