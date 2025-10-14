@@ -48,10 +48,10 @@ const Footer: React.FC<FooterProps> = ({ className = '' }) => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Services</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white">Web Development</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">Mobile Apps</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">UI/UX Design</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">Analytics</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-white">Leadership Training</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-white">Business Consultancy</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-white">People Coaching</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-white">Employer of Record (EOR)</a></li>
             </ul>
           </div>
           
@@ -59,10 +59,24 @@ const Footer: React.FC<FooterProps> = ({ className = '' }) => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Contact</h3>
             <ul className="space-y-2 text-gray-300">
-              <li>123 Excellence Street</li>
-              <li>Tech City, TC 12345</li>
-              <li>+1 (555) 123-4567</li>
-              <li>info@excellenceplus.com</li>
+              <li>Aldeoz Building,</li> 
+              <li>Jl. Wr. Jati Barat No.39 6th Floor, </li>
+              <li>Jati Padang, Kec. Pancoran, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12540</li>
+                <li>
+                <a
+                  href="https://wa.me/6281292934488?text=Hello,%20Excellenceplus.id.%20I%27m%20interested%20your%20program%20in%20training%20and%20coaching.%20Would%20you%20like%20to%20tell%20me%20more%21"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-white"
+                >
+                  Chat on WhatsApp: 0812 9293 4488
+                </a>
+                </li>
+              <li>
+                <a href="mailto:training@excellenceplus.id" className="text-gray-300 hover:text-white">
+                  training@excellenceplus.id
+                </a>
+              </li>
             </ul>
           </div>
         </div>
