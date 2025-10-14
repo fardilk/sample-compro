@@ -47,6 +47,10 @@ jobs:
           docker build -t $IMAGE_NAME:dev-$TAG_SHA -t $IMAGE_NAME:dev-latest .
           docker push $IMAGE_NAME:dev-$TAG_SHA
           docker push $IMAGE_NAME:dev-latest
+          
+      - name: Debug check key format
+        run: |
+            echo "${{ secrets.VPS_KEY_B64 }}" | base64 --decode >/dev/null && echo "✅ Key valid" || echo "❌ Invalid Base64"
 
       # 🗝️ Decode SSH key
       - name: Prepare SSH key
