@@ -21,49 +21,43 @@ jobs:
       - name: Assert required secrets exist (dev)
         shell: bash
         env:
-          DEV_VPS_HOST: ${{ secrets.VPS_HOST }}
-          DEV_VPS_USER: ${{ secrets.VPS_USER }}
-          DEV_VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
           GHCR_PAT: ${{ secrets.GHCR_PAT }}
         run: |
           set -e
-          for n in DEV_VPS_HOST DEV_VPS_USER DEV_VPS_KEY_B64 GHCR_PAT; do
+          for n in VPS_HOST VPS_USER VPS_KEY_B64 GHCR_PAT; do
             [ -n "${!n}" ] && echo "✅ $n present" || { echo "❌ Missing secret: $n"; exit 1; }
           done
 
-      - name: Prepare SSH key (base64 or raw)
+      # 🧩 Fix path + newline handling (biar appleboy bisa baca)
+      - name: Prepare SSH key
         id: prep_key
         shell: bash
         env:
-          DEV_VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
+          VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
         run: |
-          set -euo pipefail
-          if [ -n "${DEV_VPS_KEY_B64:-}" ]; then
-            printf "%s" "$DEV_VPS_KEY_B64" | tr -d '\r\n ' | base64 --decode --ignore-garbage > key.pem
-          elif [ -n "${DEV_VPS_KEY:-}" ]; then
-            printf "%s" "$DEV_VPS_KEY" > key.pem
-          else
-            echo "❌ Neither DEV_VPS_KEY_B64 nor DEV_VPS_KEY is set" >&2
-            exit 1
-          fi
-          chmod 600 key.pem
-          ssh-keygen -y -f key.pem > /dev/null 2>&1 || { echo "❌ Invalid private key" >&2; exit 255; }
-          FP=$(ssh-keygen -lf key.pem | awk '{print $2}')
-          echo "SSH key fingerprint: $FP"
+          echo "🔧 Decoding SSH key"
+          echo "${VPS_KEY_B64}" | tr -d '\r\n ' | base64 --decode --ignore-garbage > $GITHUB_WORKSPACE/deploy_key
+          chmod 600 $GITHUB_WORKSPACE/deploy_key
+          ssh-keygen -y -f $GITHUB_WORKSPACE/deploy_key > /dev/null 2>&1 || { echo "❌ Invalid SSH private key"; exit 255; }
+          FP=$(ssh-keygen -lf $GITHUB_WORKSPACE/deploy_key | awk '{print $2}')
+          echo "✅ SSH key fingerprint: $FP"
           echo "fingerprint=$FP" >> "$GITHUB_OUTPUT"
 
+      # 🧠 Debug test SSH langsung (biar tahu kalau key salah / root diblok)
       - name: Test SSH connectivity (debug)
         shell: bash
         env:
-          DEV_VPS_HOST: ${{ secrets.VPS_HOST }}
-          DEV_VPS_USER: ${{ secrets.VPS_USER }}
-          DEV_VPS_PORT: ${{ secrets.VPS_DEV_PORT }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_DEV_PORT }}
         run: |
           set -e
-          PORT_OPT=""; [ -n "${DEV_VPS_PORT:-}" ] && PORT_OPT="-p $DEV_VPS_PORT"
-          echo "Testing SSH to ${DEV_VPS_USER}@${DEV_VPS_HOST} ${DEV_VPS_PORT:+on port $DEV_VPS_PORT}"
-          echo "Using SSH key fingerprint: ${{ steps.prep_key.outputs.fingerprint }}"
-          ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=no $PORT_OPT -i key.pem "$DEV_VPS_USER@$DEV_VPS_HOST" 'echo SSH_OK'
+          echo "🔍 Testing SSH to ${VPS_USER}@${VPS_HOST}:${VPS_PORT:-22}"
+          ssh -v -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -p "${VPS_PORT:-22}" -i $GITHUB_WORKSPACE/deploy_key \
+            "${VPS_USER}@${VPS_HOST}" "echo SSH_OK"
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -78,18 +72,19 @@ jobs:
           docker push $IMAGE_NAME:dev-$TAG_SHA
           docker push $IMAGE_NAME:dev-latest
 
+      # 🚀 Deploy pakai appleboy (sekarang key_path benar)
       - name: Deploy to Dev VPS via Docker
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key_path: key.pem
+          key_path: ${{ github.workspace }}/deploy_key
           port: ${{ secrets.VPS_DEV_PORT }}
           script: |
             set -e
+            echo "🐳 Deploying to dev server..."
             docker login ghcr.io -u fardilk -p ${{ secrets.GHCR_PAT }}
             docker pull $IMAGE_NAME:dev-latest
             docker stop excellenceplusweb-dev || true
             docker rm excellenceplusweb-dev || true
-            DEV_HTTP_PORT=${DEV_HTTP_PORT:-8080}
-            docker run -d --name excellenceplusweb-dev -p ${DEV_HTTP_PORT}:80 $IMAGE_NAME:dev-latest
+            docker run -d --name excellenceplusweb-dev -p 8080:80 $IMAGE_NAME:dev-latest
