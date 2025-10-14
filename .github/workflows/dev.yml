@@ -1,0 +1,55 @@
+name: CI/CD Build & Deploy (DEV - Docker)
+
+on:
+  push:
+    branches: [ dev ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Assert required secrets exist
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
+        run: |
+          for n in VPS_HOST VPS_USER VPS_KEY_B64 GHCR_PAT; do
+            [ -n "${!n}" ] && echo "✅ $n present" || { echo "❌ Missing secret: $n"; exit 1; }
+          done
+
+      - name: Prepare SSH key
+        run: |
+          echo "${{ secrets.VPS_KEY_B64 }}" | base64 -d > $GITHUB_WORKSPACE/deploy_key
+          chmod 600 $GITHUB_WORKSPACE/deploy_key
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        run: echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u fardilk --password-stdin
+
+      - name: Build and Push Docker image to GHCR (dev)
+        run: |
+          IMAGE_NAME=ghcr.io/fardilk/excellenceplusweb:dev
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
+
+      - name: Deploy to VPS via Docker (dev)
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key_path: /github/workspace/deploy_key
+          script: |
+            docker login ghcr.io -u fardilk -p ${{ secrets.GHCR_PAT }}
+            docker pull ghcr.io/fardilk/excellenceplusweb:dev
+            docker stop excellenceplusweb-dev || true
+            docker rm excellenceplusweb-dev || true
+            docker run -d --name excellenceplusweb-dev -p 8080:80 ghcr.io/fardilk/excellenceplusweb:dev
