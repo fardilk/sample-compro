@@ -63,7 +63,7 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          port: ${{ secrets.VPS_PROD_PORT }}  # ini harus 22
+          port: ${{ secrets.VPS_PROD_PORT }}
           key_path: key.pem
           script: |
             echo "🛠 Pulling latest image..."
@@ -74,9 +74,10 @@ jobs:
             docker stop excellenceplusweb-prod || true
             docker rm excellenceplusweb-prod || true
 
-            echo "🚀 Starting new container..."
+            echo "🚀 Starting new container on port 8081..."
             docker run -d --name excellenceplusweb-prod \
-              -p 80:80 \
+              -p 8081:80 \
               --restart always \
               ghcr.io/fardilk/excellenceplusweb:prod-latest
+
 
