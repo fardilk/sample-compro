@@ -37,10 +37,10 @@ const Footer: React.FC<FooterProps> = ({ className = '' }) => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              <li><a href="#home" className="text-gray-300 hover:text-white">Home</a></li>
-              <li><a href="#about" className="text-gray-300 hover:text-white">About</a></li>
-              <li><a href="#services" className="text-gray-300 hover:text-white">Services</a></li>
-              <li><a href="#contact" className="text-gray-300 hover:text-white">Contact</a></li>
+              <li><a href="/" className="text-gray-300 hover:text-white">Home</a></li>
+              <li><a href="/about-us" className="text-gray-300 hover:text-white">About</a></li>
+              <li><a href="/services" className="text-gray-300 hover:text-white">Services</a></li>
+              <li><a href="/home/contact" className="text-gray-300 hover:text-white">Contact</a></li>
             </ul>
           </div>
           
@@ -48,10 +48,10 @@ const Footer: React.FC<FooterProps> = ({ className = '' }) => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Services</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white">Leadership Training</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">Business Consultancy</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">People Coaching</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">Employer of Record (EOR)</a></li>
+              <li><a href="/services/training/leadership" className="text-gray-300 hover:text-white">Leadership Training</a></li>
+              <li><a href="/services/consultancy/hotel-management" className="text-gray-300 hover:text-white">Business Consultancy</a></li>
+              <li><a href="/services/coaching/executive-coaching" className="text-gray-300 hover:text-white">People Coaching</a></li>
+              <li><a href="/services/employer-of-record/global-expansion" className="text-gray-300 hover:text-white">Employer of Record (EOR)</a></li>
             </ul>
           </div>
           
