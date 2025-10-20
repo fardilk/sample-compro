@@ -1,8 +1,8 @@
 import React from 'react';
 import type { HeaderProps } from '../types';
 import Button from './Button';
-import { mainMenu } from '../../func/hoverMenu';
-import type { HoverMenuItem } from '../../func/hoverMenu';
+import { mainMenu } from '../../utils/hoverMenu';
+import type { HoverMenuItem } from '../../utils/hoverMenu';
 import FontAwesome from './FontAwesome';
 import HoverMenu2 from './HoverMenu2';
 import { Link } from 'react-router-dom';
