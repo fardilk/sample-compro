@@ -1,6 +1,7 @@
 import React from 'react';
 import { Header, Footer, FontAwesome } from '../components/global';
 import { Banner, Stats, UpcomingEvent, About } from '../components/home';
+import { H2, P } from '../utils/typography';
 import ContactForm from '../components/ui/ContactForm';
 
 const Homepage: React.FC = () => {
@@ -8,16 +9,16 @@ const Homepage: React.FC = () => {
     <div className="homepage">
       <Header />
       
-      {/* Hero Section */}
+
       <section className="hero-section">
         <Banner />
       </section>
-      {/* Upcoming events (new) */}
+
       <section>
         <UpcomingEvent />
       </section>
 
-      {/* Stats Section (moved out of Banner) */}
+
       <section>
         <Stats />
       </section>
@@ -29,10 +30,10 @@ const Homepage: React.FC = () => {
       <section className="services-section bg-gray-50" id="services">
         <div className="container mx-auto px-4 py-16">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">Our Services</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <H2 className="mb-4">Our Services</H2>
+            <P className="text-lg text-gray-600 max-w-3xl mx-auto">
               Comprehensive solutions tailored to meet your specific needs and requirements.
-            </p>
+            </P>
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -103,10 +104,10 @@ const Homepage: React.FC = () => {
       <section className="contact-section bg-white" id="contact">
         <div className="container mx-auto px-4 py-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Get In Touch</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <H2 className="text-3xl md:text-4xl mb-4">Get In Touch</H2>
+            <P className="text-lg text-gray-600 max-w-3xl mx-auto">
               Ready to start your next project? Contact us today and let's discuss how we can help.
-            </p>
+            </P>
           </div>
           <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10">
             <div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Header, Footer, FontAwesome } from '../components/global';
-import { mainMenu } from '../func/hoverMenu';
+import { mainMenu } from '../utils/hoverMenu';
 
 const slugify = (s: string) => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
