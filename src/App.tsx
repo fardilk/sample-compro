@@ -4,6 +4,7 @@ import ServicesPage from './pages/ServicesPage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
 import AboutUsPage from './pages/AboutUsPage';
 import BlogPage from './pages/BlogPage';
+import ContactPage from './pages/ContactPage';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/services/:category/:id" element={<ServiceDetailPage />} />
         <Route path="/blog" element={<BlogPage />} />
+        <Route path="/home/contact" element={<ContactPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
