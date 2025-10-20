@@ -3,6 +3,9 @@ import { Header, Footer, FontAwesome } from '../components/global';
 import { Banner, Stats, UpcomingEvent, About } from '../components/home';
 import { H2, P } from '../utils/typography';
 import ContactForm from '../components/ui/ContactForm';
+import { mainMenu } from '../utils/hoverMenu';
+import { Link } from 'react-router-dom';
+import { slugify } from '../utils/slugify';
 
 const Homepage: React.FC = () => {
   return (
@@ -32,70 +35,31 @@ const Homepage: React.FC = () => {
           <div className="text-center mb-12">
             <H2 className="mb-4">Our Services</H2>
             <P className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Comprehensive solutions tailored to meet your specific needs and requirements.
+              We are experienced in Training, Coaching, Consulting & Recruitment Services and digital enablement services.
             </P>
           </div>
-          
+          {/* Render real service categories from menu */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <div className="text-blue-600 mb-4">
-                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Web Development</h3>
-              <p className="text-gray-600">Modern, responsive websites built with the latest technologies.</p>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <div className="text-green-600 mb-4">
-                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Mobile Apps</h3>
-              <p className="text-gray-600">Cross-platform mobile applications for iOS and Android.</p>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <div className="text-purple-600 mb-4">
-                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 00-2 2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Analytics</h3>
-              <p className="text-gray-600">Data-driven insights to help your business grow.</p>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <div className="text-red-600 mb-4">
-                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">UI/UX Design</h3>
-              <p className="text-gray-600">Beautiful and intuitive user interfaces that users love.</p>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <div className="text-yellow-600 mb-4">
-                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Performance</h3>
-              <p className="text-gray-600">Optimization services to boost your application's speed.</p>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <div className="text-indigo-600 mb-4">
-                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.25a9.75 9.75 0 109.75 9.75A9.749 9.749 0 0012 2.25z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Support</h3>
-              <p className="text-gray-600">24/7 technical support and maintenance services.</p>
-            </div>
+            {(mainMenu.find(m => m.label === 'Our Services')?.children ?? []).map((cat) => {
+              const catSlug = slugify(cat.label);
+              const firstChild = (cat.children ?? [])[0];
+              const firstChildSlug = firstChild ? slugify(firstChild.label) : undefined;
+              return (
+                <div key={cat.label} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                  <div className="text-blue-600 mb-4">
+                    <i className={`fa ${cat.icon ?? 'fa-briefcase'} text-3xl`} aria-hidden="true"></i>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3">{cat.label}</h3>
+                  <p className="text-gray-600">{(cat.description ?? '').slice(0, 120) || `Explore ${cat.label} offerings tailored to your goals.`}</p>
+                  <div className="mt-4 flex gap-4">
+                    {firstChildSlug && (
+                      <Link to={`/services/${catSlug}/${firstChildSlug}`} className="text-blue-600 hover:underline">View Details</Link>
+                    )}
+                    <Link to={`/services#section-${catSlug}`} className="text-slate-700 hover:underline">Explore Category</Link>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

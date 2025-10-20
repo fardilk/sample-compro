@@ -2,33 +2,44 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { Header, Footer, FontAwesome } from '../components/global';
 import OurTeam from '../components/ui/OurTeam';
+import OurHistory from '../components/ui/OurHistory';
+import OurValues from '../components/ui/OurValues';
 import { H1, H2, H3, P, Lead } from '../utils/typography';
 
 const historyBlocks = [
   {
+		year: '2017',
+		title: 'Excellence Plus Founded',
+		text: 'Founded with a mission to elevate organizations through people and service excellence.',
+  },
+	{
     year: '2018',
-    text: 'Founded with a mission to elevate organizations through people and service excellence.',
+		title: 'Early Expansion',
+		text: 'Founded with a mission to elevate organizations through people and service excellence.',
   },
   {
     year: '2019',
-    text: 'Launched signature training programs across leadership, sales, and service.',
+		title: 'Signature Programs Launched',
+		text: 'Launched signature training programs across leadership, sales, and service.',
   },
   {
     year: '2020',
-    text: 'Expanded consulting practice into HR systems and hospitality management.',
+		title: 'Consulting Practice Expansion',
+		text: 'Expanded consulting practice into HR systems and hospitality management.',
   },
   {
     year: '2022',
-    text: 'Introduced executive coaching and recruitment solutions for senior roles.',
+		title: 'Coaching & Recruitment Added',
+		text: 'Introduced executive coaching and recruitment solutions for senior roles.',
   },
   {
     year: '2024',
-    text: 'Scaled Employer of Record (EOR) offering to support rapid market entry.',
+		title: 'EOR Scaled',
+		text: 'Scaled Employer of Record (EOR) offering to support rapid market entry.',
   },
 ];
 
 const AboutUsPage: React.FC = () => {
-  const [activeHistory, setActiveHistory] = React.useState(0);
   const location = useLocation();
 
   React.useEffect(() => {
@@ -59,7 +70,7 @@ const AboutUsPage: React.FC = () => {
 				<div className="mx-auto" style={{ width: '90%' }}>
 					<H2 className="mb-2">WELCOME TO EXCELLENCE PLUS INDONESIA</H2>
 					<P className="text-lg md:text-xl mb-1">Innovative Solutions To Move Your Business Forward.</P>
-					<p className="text-slate-500 mb-6">About Excellence Plus Indonesia (EPI) Training &amp; Consultancy</p>
+					  <p className="text-slate-500 mb-6">We are experienced in Training, Coaching, Consulting &amp; Recruitment Services and digital enablement services.</p>
 					<div className="space-y-3 prose max-w-none text-slate-800">
 						<P>Excellence Plus Indonesia adalah sebuah institusi yang membantu memberikan kesempatan kepada perusahaan-perusahaan dan individu-induvidu pembelajar untuk mendapatkan pembelajaran yang berkualitas. EPI yang didirikan oleh coach Edi Purnomo, SE, MM, CPHRM, CHA, bertujuan tidak hanya menghadirkan pembelajaran yang menyenangkan dan penuh makna untuk para pesertanya, akan tetapi juga membantu perusahaan menemukan talenta-talenta berkelas melalui program executive search/ head hunter. EPI juga berperan aktif dalam pengembangan sustainable tourism yang saat ini berfokus di area Indonesia Timur.</P>
 						<P>Excellece Plus Indonesia menyediakan program Public Training, in-house training, baik offline maupun online, head hunter, serta coaching. EPI berkomitmen memberikan program terbaik disesuaikan dengan kebutuhan masing-masing perusahaan dan individu yang tentunya beragam, sehingga masing-masing perusahaan atau individu akan mendapatkan manfaat maksimal.</P>
@@ -129,74 +140,11 @@ const AboutUsPage: React.FC = () => {
 			{/* Our Team - now a reusable, rigid 3-card component without hover/swiper */}
 			<OurTeam />
 
-			{/* History - switch zebra to white, keep parallax and shadows */}
-			<section id="history" className="py-12 bg-white" style={{ backgroundAttachment: 'fixed' }}>
-				<div className="mx-auto" style={{ width: '90%' }}>
-					<h2 className="text-2xl font-bold text-center mb-8">Our History</h2>
-					<div className="grid grid-cols-[12rem_1fr] gap-6 items-start">
-						{/* Vertical year bar */}
-						<div className="relative">
-							<div className="sticky top-28">
-								<div className="relative">
-									<div className="absolute left-6 top-0 bottom-0 w-1 bg-slate-200"></div>
-									<div className="flex flex-col gap-6 relative py-2">
-										{historyBlocks.map((h, idx) => (
-											<button key={h.year} onClick={() => setActiveHistory(idx)} className="relative pl-12 text-left cursor-pointer">
-												<span className={`absolute left-4 top-1.5 w-4 h-4 rounded-full ${idx === activeHistory ? 'bg-orange-500' : 'bg-slate-300'}`}></span>
-												<span className={`font-semibold ${idx === activeHistory ? 'text-orange-600' : 'text-slate-600'}`}>{h.year}</span>
-											</button>
-										))}
-									</div>
-								</div>
-							</div>
-						</div>
+			{/* History */}
+			<OurHistory blocks={historyBlocks} imageSrc="/img/excellence-plus-1.png" id="history" />
 
-						{/* Single active block - no border, solid fill with shadow */}
-						<div className="grid grid-cols-1 gap-6">
-							{historyBlocks.map((h, idx) => (
-								idx === activeHistory ? (
-									<div key={h.year} className={`rounded-lg p-6 bg-white ${idx % 2 === 0 ? 'shadow-sm' : 'shadow-md'}`}>
-										<div className="text-sm text-slate-500 mb-1">{h.year}</div>
-										<div className="font-semibold mb-2">Milestone</div>
-										<p className="text-slate-700">{h.text}</p>
-									</div>
-								) : null
-							))}
-							<div className="flex justify-end gap-2">
-								<button className="px-3 py-1 rounded-md border border-slate-300 cursor-pointer" onClick={() => setActiveHistory((p) => (p - 1 + historyBlocks.length) % historyBlocks.length)}>Prev</button>
-								<button className="px-3 py-1 rounded-md border border-slate-300 cursor-pointer" onClick={() => setActiveHistory((p) => (p + 1) % historyBlocks.length)}>Next</button>
-							</div>
-						</div>
-					</div>
-				</div>
-			</section>
-
-			{/* Values - zebra to brand-light; cards are solid fill with shadow */}
-			<section id="values" className="py-12 bg-orange-50">
-				<div className="mx-auto" style={{ width: '90%' }}>
-					<h2 className="text-2xl font-bold mb-6">Our Values</h2>
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-						{[
-						{ title: 'Hospitable', text: 'We welcome with empathy, respect, and timely help in every interaction.', icon: 'fa-solid fa-shield-alt', bg: 'bg-blue-50', textColor: 'text-blue-600' },
-						{ title: 'Excellence', text: 'We pursue outstanding quality through continuous improvement and rigor.', icon: 'fa-solid fa-star', bg: 'bg-yellow-50', textColor: 'text-yellow-600' },
-						{ title: 'Leading', text: 'We guide with vision, co-create with teams, and elevate shared outcomes.', icon: 'fa-solid fa-handshake', bg: 'bg-green-50', textColor: 'text-green-600' },
-						{ title: 'Integrity', text: 'We act with honesty, keep our promises, and own every decision.', icon: 'fa-solid fa-bullseye', bg: 'bg-red-50', textColor: 'text-red-600' },
-						{ title: 'Sincerity', text: 'We speak plainly, with good intent, and mean what we commit.', icon: 'fa-solid fa-bullseye', bg: 'bg-red-50', textColor: 'text-red-600' },
-
-						].map((v, i) => (
-							<div key={v.title} className={`rounded-lg p-5 ${v.bg} ${i % 2 === 0 ? 'shadow-sm' : 'shadow-md'}`}>
-								<div className="flex items-center gap-3 mb-3">
-									<div className={`w-12 h-12 flex items-center justify-center rounded-md ${v.bg}`}>
-										<i className={`${v.icon} ${v.textColor}`} aria-hidden="true"></i>
-									</div>
-									<div className="font-semibold text-lg">{v.title}</div>
-								</div>
-								<p className="text-slate-700 text-sm">{v.text}</p>
-							</div>
-						))}
-					</div>
-				</div>
-			</section>
+			{/* Values */}
+			<OurValues id="values" />
 
 			<Footer />
 		</div>

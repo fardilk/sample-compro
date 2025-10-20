@@ -13,7 +13,7 @@ const ServicesPage: React.FC = () => {
   const servicesRoot = getServicesRoot();
   const categories = servicesRoot?.children ?? [];
 
-  const heroDesc = 'Training, Consultancy & Recruitment Services tailored for measurable impact, sustainable growth, and real business momentum forward.';
+  const heroDesc = 'Training, Coaching, Consulting & Recruitment Services and Digital Enablement — technology-backed solutions for measurable impact and sustainable growth.';
 
   // Soft color palettes per index
   const colorSets = [
