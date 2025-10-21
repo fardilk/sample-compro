@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import type { HoverMenuItem } from '../../func/hoverMenu';
-import { slugify } from '../../func/slugify';
+import type { HoverMenuItem } from '../../utils/hoverMenu';
+import { slugify } from '../../utils/slugify';
 
 interface HoverMenu2Props {
   items: HoverMenuItem[];

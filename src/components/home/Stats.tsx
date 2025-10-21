@@ -12,17 +12,17 @@ const Stats: React.FC = () => {
 
             <div className="mt-4 grid md:grid-cols-3 gap-6 text-center">
               <div className="bg-white rounded-lg p-6 transform transition hover:-translate-y-1 hover:shadow-md">
-                <div className="text-4xl font-bold mb-2 text-gray-900">100+</div>
-                <div className="text-lg text-gray-700">Projects Completed</div>
+                <div className="text-4xl font-bold mb-2 text-gray-900">10,000+</div>
+                <div className="text-lg text-gray-700">Projects Completed since 2017</div>
               </div>
 
               <div className="bg-white rounded-lg p-6 transform transition hover:-translate-y-1 hover:shadow-md">
-                <div className="text-4xl font-bold mb-2 text-gray-900">50+</div>
+                <div className="text-4xl font-bold mb-2 text-gray-900">1,000+</div>
                 <div className="text-lg text-gray-700">Happy Clients</div>
               </div>
 
               <div className="bg-white rounded-lg p-6 transform transition hover:-translate-y-1 hover:shadow-md">
-                <div className="text-4xl font-bold mb-2 text-gray-900">5+</div>
+                <div className="text-4xl font-bold mb-2 text-gray-900">15+</div>
                 <div className="text-lg text-gray-700">Years Experience</div>
               </div>
             </div>

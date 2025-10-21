@@ -1,7 +1,27 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Header, Footer, FontAwesome } from '../components/global';
-import { mainMenu } from '../func/hoverMenu';
+import { mainMenu } from '../utils/hoverMenu';
+import Variant1 from '../components/services/variants/Variant1';
+import Variant3 from '../components/services/variants/Variant3';
+import Variant5 from '../components/services/variants/Variant5';
+import Variant6 from '../components/services/variants/Variant6';
+import Variant7 from '../components/services/variants/Variant7';
+import Variant2 from '../components/services/variants/Variant2';
+import Variant4 from '../components/services/variants/Variant4';
+import Variant8 from '../components/services/variants/Variant8';
+import Variant9 from '../components/services/variants/Variant9';
+// Variant10 remains available if needed in future mappings
+import type { VariantContent } from '../components/services/types';
+// Training per-service content
+import leadershipContent from '../components/services/variants/content/training/leadership';
+import salesContent from '../components/services/variants/content/training/sales';
+import motivationContent from '../components/services/variants/content/training/motivation';
+import serviceExcellenceContent from '../components/services/variants/content/training/service-excellence';
+import entrepreneurshipContent from '../components/services/variants/content/training/entrepreneurship';
+import publicSpeakingContent from '../components/services/variants/content/training/public-speaking';
+import tttContent from '../components/services/variants/content/training/train-the-trainer';
+import butlerContent from '../components/services/variants/content/training/butler-training';
 
 const slugify = (s: string) => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
@@ -18,6 +38,81 @@ const ServiceDetailPage: React.FC = () => {
 
   const title = item?.label ?? 'Service';
   const desc = item?.description ?? 'This is a sample description for the selected service. Content will be expanded with real case studies, outcomes, and curriculum.';
+  // Choose a specific variant for each service/category using labels for robustness
+  const getVariant = () => {
+    const catLabel = (cat?.label || category).toLowerCase();
+    const isLeaf = item && item !== cat;
+    const leafLabel = isLeaf ? (item!.label.toLowerCase()) : undefined;
+
+    // Category-level
+    if (!isLeaf) {
+      if (catLabel.includes('training')) return Variant1;
+      if (catLabel.includes('consultancy')) return Variant3;
+      if (catLabel.includes('coaching')) return Variant7;
+      if (catLabel.includes('executive') && catLabel.includes('search')) return Variant8;
+      if (catLabel.includes('employer of record')) return Variant2;
+      return Variant1;
+    }
+
+    // Training leaves
+    if (catLabel.includes('training')) {
+      if (!leafLabel) return Variant1;
+      if (leafLabel.includes('Build high performing teams with half the work.') || leafLabel.includes('sales') || leafLabel.includes('service excellence') || leafLabel.includes('butler')) return Variant1;
+      if (leafLabel.includes('entrepreneurship') || leafLabel.includes('train the trainer')) return Variant3;
+      if (leafLabel.includes('motivation') || leafLabel.includes('public speaking')) return Variant5;
+      return Variant1;
+    }
+
+    // Consultancy leaves
+    if (catLabel.includes('consultancy')) {
+      if (!leafLabel) return Variant3;
+      if (leafLabel.includes('hotel')) return Variant3;
+      if (leafLabel.includes('hr system')) return Variant4;
+      if (leafLabel.includes('restaurant') || leafLabel.includes('cafe')) return Variant5;
+      if (leafLabel.includes('digital enablement')) return Variant6;
+      if (leafLabel.includes('technology solutions')) return Variant9;
+      return Variant3;
+    }
+
+    // Coaching leaves
+    if (catLabel.includes('coaching')) {
+      if (!leafLabel) return Variant7;
+      if (leafLabel.includes('executive')) return Variant7;
+      if (leafLabel.includes('team')) return Variant2;
+      return Variant7;
+    }
+
+    // Executive Search & Recruitment leaves
+    if (catLabel.includes('executive') && catLabel.includes('search')) {
+      return Variant8;
+    }
+
+    // EOR leaves
+    if (catLabel.includes('employer of record')) {
+      if (!leafLabel) return Variant2;
+      if (leafLabel.includes('global')) return Variant2;
+      if (leafLabel.includes('entity')) return Variant4;
+      return Variant2;
+    }
+
+    return Variant1;
+  };
+  const SelectedVariant = getVariant();
+
+  // Provide override content for specific training pages
+  let overrideContent: VariantContent | undefined;
+  const catLabel = (cat?.label || category).toLowerCase();
+  const leafLabel = item && item !== cat ? item!.label.toLowerCase() : undefined;
+  if (catLabel.includes('training') && leafLabel) {
+    if (leafLabel.includes('leadership')) overrideContent = leadershipContent;
+    else if (leafLabel.includes('sales')) overrideContent = salesContent;
+    else if (leafLabel.includes('motivation')) overrideContent = motivationContent;
+    else if (leafLabel.includes('service excellence')) overrideContent = serviceExcellenceContent;
+    else if (leafLabel.includes('entrepreneurship')) overrideContent = entrepreneurshipContent;
+    else if (leafLabel.includes('public speaking')) overrideContent = publicSpeakingContent;
+    else if (leafLabel.includes('train the trainer')) overrideContent = tttContent;
+    else if (leafLabel.includes('butler')) overrideContent = butlerContent;
+  }
 
   return (
     <div className="service-detail-page">
@@ -37,30 +132,8 @@ const ServiceDetailPage: React.FC = () => {
         </div>
       </section>
 
-      <section className="py-12 bg-white">
-        <div className="mx-auto" style={{ width: '90%' }}>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="md:col-span-2">
-              <h2 className="text-xl font-bold mb-3">Overview</h2>
-              <p className="text-slate-700 mb-6">{desc}</p>
-
-              <h3 className="text-lg font-semibold mb-2">What you'll get</h3>
-              <ul className="list-disc pl-5 text-slate-700 space-y-1">
-                <li>Practical frameworks and tools you can apply immediately</li>
-                <li>Guidance from experienced practitioners and coaches</li>
-                <li>Measurable outcomes aligned with your objectives</li>
-              </ul>
-            </div>
-            <aside className="bg-gray-50 border border-slate-200 rounded-lg p-4">
-              <h4 className="font-semibold mb-2">Quick Actions</h4>
-              <div className="space-y-2">
-                <Link to="/services" className="block bg-blue-600 text-white text-center px-4 py-2 rounded-md">Get Started</Link>
-                <a href="#contact" className="block border border-blue-600 text-blue-600 text-center px-4 py-2 rounded-md">Talk to Us</a>
-              </div>
-            </aside>
-          </div>
-        </div>
-      </section>
+      {/* Render the selected variant for this route */}
+  <SelectedVariant title={title} subtitle={desc} overrideContent={overrideContent} />
 
       <Footer />
     </div>

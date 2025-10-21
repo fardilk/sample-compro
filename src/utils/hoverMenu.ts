@@ -116,6 +116,18 @@ export const mainMenu: HoverMenuItem[] = [
             icon: 'fa-utensils',
             href: '#restaurant-cafe',
           },
+          {
+            label: 'Digital Enablement',
+            description: 'Drive adoption, workflows, and capability uplift backed by digital platforms.',
+            icon: 'fa-rocket',
+            href: '#digital-enablement',
+          },
+          {
+            label: 'Technology Solutions',
+            description: 'Architecture, DevOps, integration and platform engineering for scale and reliability.',
+            icon: 'fa-laptop-code',
+            href: '#technology-solutions',
+          },
         ],
       },
       {
