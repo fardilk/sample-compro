@@ -25,3 +25,14 @@ dist-ssr
 
 gh_ci2.b64
 github_ci.b64
+
+# Secrets — never commit.
+# .env.production stays tracked on purpose: it holds only VITE_SITE_URL,
+# which the CI build needs to substitute into index.html.
+.env
+.env.local
+.env.development
+.env.*.local
+*.pem
+*.key
+*.b64
