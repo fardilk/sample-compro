@@ -22,8 +22,10 @@ const {
 } = Astro.props;
 
 // Astro.site comes from astro.config.mjs, so every page gets a real canonical
-// instead of the hardcoded one the old build shipped.
-const canonical = new URL(Astro.url.pathname, Astro.site).href;
+// instead of the hardcoded one the old build shipped. build.format is 'file',
+// so the built pathname carries a .html suffix the public URL does not have.
+const publicPath = Astro.url.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '') || '/';
+const canonical = new URL(publicPath, Astro.site).href;
 const imageUrl = new URL(image, Astro.site).href;
 const fullTitle = title === 'Excellence Plus Indonesia' ? title : `${title} | Excellence Plus Indonesia`;
 
