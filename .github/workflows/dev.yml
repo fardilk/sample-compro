@@ -15,11 +15,9 @@ jobs:
       name: dev
 
     steps:
-      # 🧩 Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 🔐 Pastikan secrets tersedia
       - name: Assert required secrets exist
         shell: bash
         env:
@@ -31,10 +29,9 @@ jobs:
         run: |
           set -e
           for n in GHCR_PAT VPS_HOST VPS_USER VPS_KEY_B64 VPS_DEV_PORT; do
-            [ -n "${!n}" ] && echo "✅ $n present" || { echo "❌ Missing secret: $n"; exit 1; }
+            [ -n "${!n}" ] && echo "$n present" || { echo "Missing secret: $n"; exit 1; }
           done
 
-      # 🐳 Build & Push Docker image ke GHCR
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -43,25 +40,21 @@ jobs:
 
       - name: Build and Push Docker image (dev)
         run: |
+          set -e
           TAG_SHA=${GITHUB_SHA::7}
           docker build -t $IMAGE_NAME:dev-$TAG_SHA -t $IMAGE_NAME:dev-latest .
           docker push $IMAGE_NAME:dev-$TAG_SHA
           docker push $IMAGE_NAME:dev-latest
-          
-      - name: Debug check key format
-        run: |
-            echo "${{ secrets.VPS_KEY_B64 }}" | base64 --decode >/dev/null && echo "✅ Key valid" || echo "❌ Invalid Base64"
 
-      # 🗝️ Decode SSH key
       - name: Prepare SSH key
         shell: bash
         env:
           VPS_KEY_B64: ${{ secrets.VPS_KEY_B64 }}
         run: |
+          set -e
           echo "$VPS_KEY_B64" | base64 -d > key.pem
           chmod 600 key.pem
 
-      # 🚀 Deploy ke VPS
       - name: Deploy to VPS (Dev)
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -69,14 +62,45 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           port: ${{ secrets.VPS_DEV_PORT }}
           key_path: key.pem
+          script_stop: true
           script: |
-            echo "🛠 Pulling latest image..."
+            set -e
+            IMAGE=ghcr.io/fardilk/excellenceplusweb:dev-latest
+            NAME=excellenceplusweb-dev
+            PORT=8080
+
             docker login ghcr.io -u fardilk -p ${{ secrets.GHCR_PAT }}
-            docker pull ghcr.io/fardilk/excellenceplusweb:dev-latest
 
-            echo "🧹 Cleaning up old container..."
-            docker stop excellenceplusweb-dev || true
-            docker rm excellenceplusweb-dev || true
+            # Pull before touching the running container. A failed pull used to
+            # fall through and restart the container from whatever stale image
+            # was still cached, silently redeploying an old build.
+            pulled=0
+            for i in 1 2 3; do
+              if docker pull "$IMAGE"; then pulled=1; break; fi
+              echo "pull attempt $i failed, retrying in 5s"
+              sleep 5
+            done
+            if [ "$pulled" != 1 ]; then
+              echo "ERROR: could not pull $IMAGE. Leaving the running container untouched."
+              exit 1
+            fi
 
-            echo "🚀 Starting new container..."
-            docker run -d --name excellenceplusweb-dev               -p 8080:80               --restart always               ghcr.io/fardilk/excellenceplusweb:dev-latest
+            docker rm -f "$NAME" || true
+            docker run -d --name "$NAME" -p "$PORT:80" --restart always "$IMAGE"
+
+            # Smoke check: / alone is not enough, a broken image still serves it.
+            for p in / /about-us /services/training/leadership; do
+              code=""
+              for i in 1 2 3 4 5; do
+                code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT$p" || true)
+                [ "$code" = "200" ] && break
+                sleep 2
+              done
+              if [ "$code" != "200" ]; then
+                echo "ERROR: smoke check failed for $p (got $code)"
+                exit 1
+              fi
+              echo "ok $p"
+            done
+
+            docker image prune -f
