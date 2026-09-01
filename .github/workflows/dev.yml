@@ -93,7 +93,11 @@ jobs:
               code=""
               for i in 1 2 3 4 5; do
                 code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT$p" || true)
-                [ "$code" = "200" ] && break
+                # `[ ... ] && break` would return non-zero on a miss and set -e
+                # would kill the script before the retry ever happened.
+                if [ "$code" = "200" ]; then
+                  break
+                fi
                 sleep 2
               done
               if [ "$code" != "200" ]; then
