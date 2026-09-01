@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AboutIntro from '../sections/AboutIntro';
+import OurTeam from '../components/ui/OurTeam';
+import OurHistory from '../components/ui/OurHistory';
+import OurValues from '../components/ui/OurValues';
+import { historyBlocks } from '../data/history';
+---
+
+<BaseLayout
+  title="Who We Are"
+  description="Profil, visi, misi, tim, dan perjalanan Excellence Plus Indonesia sejak 2017."
+>
+  <AboutIntro />
+  {/* Both carry local state, so both hydrate; everything above ships no JS. */}
+  <OurTeam client:visible />
+  <OurHistory client:visible blocks={historyBlocks} imageSrc="/img/excellence-plus-1.png" id="history" />
+  <OurValues id="values" />
+</BaseLayout>

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 
 type CTAStyle = 'primary' | 'secondary' | 'ghost';
 
@@ -19,9 +18,9 @@ export const CTAButton: React.FC<CTAButtonProps> = ({ to, styleType = 'primary',
   const cls = `${baseClasses} ${styleMap[styleType]} ${className}`;
   if (to) {
     return (
-      <Link to={to} className={cls}>
+      <a href={to} className={cls}>
         {children}
-      </Link>
+      </a>
     );
   }
   return (

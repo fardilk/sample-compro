@@ -79,4 +79,4 @@ jobs:
             docker rm excellenceplusweb-dev || true
 
             echo "🚀 Starting new container..."
-            docker run -d --name excellenceplusweb-dev -p 8080:80 ghcr.io/fardilk/excellenceplusweb:dev-latest
+            docker run -d --name excellenceplusweb-dev               -p 8080:80               --restart always               ghcr.io/fardilk/excellenceplusweb:dev-latest

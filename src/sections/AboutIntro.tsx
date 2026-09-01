@@ -1,62 +1,9 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
-import { Header, Footer, FontAwesome } from '../components/global';
-import OurTeam from '../components/ui/OurTeam';
-import OurHistory from '../components/ui/OurHistory';
-import OurValues from '../components/ui/OurValues';
 import { H1, H2, H3, P, Lead } from '../utils/typography';
 
-const historyBlocks = [
-  {
-		year: '2017',
-		title: 'Excellence Plus Founded',
-		text: 'Founded with a mission to elevate organizations through people and service excellence.',
-  },
-	{
-    year: '2018',
-		title: 'Early Expansion',
-		text: 'Founded with a mission to elevate organizations through people and service excellence.',
-  },
-  {
-    year: '2019',
-		title: 'Signature Programs Launched',
-		text: 'Launched signature training programs across leadership, sales, and service.',
-  },
-  {
-    year: '2020',
-		title: 'Consulting Practice Expansion',
-		text: 'Expanded consulting practice into HR systems and hospitality management.',
-  },
-  {
-    year: '2022',
-		title: 'Coaching & Recruitment Added',
-		text: 'Introduced executive coaching and recruitment solutions for senior roles.',
-  },
-  {
-    year: '2024',
-		title: 'EOR Scaled',
-		text: 'Scaled Employer of Record (EOR) offering to support rapid market entry.',
-  },
-];
-
-const AboutUsPage: React.FC = () => {
-  const location = useLocation();
-
-  React.useEffect(() => {
-    if (location.hash) {
-      const id = location.hash.replace('#', '');
-      const el = document.getElementById(id);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
-  }, [location.hash]);
-
+const AboutIntro: React.FC = () => {
 	return (
 		<div className="about-page">
-			<FontAwesome />
-			<Header />
-
 			{/* Hero with subtle parallax */}
 			<section className="text-white pt-16 pb-14 bg-gradient-to-r from-slate-900 to-slate-700" style={{ backgroundAttachment: 'fixed' }}>
 				<div className="mx-auto" style={{ width: '90%' }}>
@@ -137,18 +84,8 @@ const AboutUsPage: React.FC = () => {
 				</div>
 			</section>
 
-			{/* Our Team - now a reusable, rigid 3-card component without hover/swiper */}
-			<OurTeam />
-
-			{/* History */}
-			<OurHistory blocks={historyBlocks} imageSrc="/img/excellence-plus-1.png" id="history" />
-
-			{/* Values */}
-			<OurValues id="values" />
-
-			<Footer />
 		</div>
 	);
 };
 
-export default AboutUsPage;
+export default AboutIntro;

@@ -1,6 +1,5 @@
 import React from 'react';
 import type { CardGridContent } from './types';
-import { Link } from 'react-router-dom';
 
 const CardGrid: React.FC<CardGridContent> = ({ items, columns = 3, title, subtitle }) => {
   const cols = columns === 4 ? 'lg:grid-cols-4' : columns === 2 ? 'md:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-3';
@@ -26,9 +25,9 @@ const CardGrid: React.FC<CardGridContent> = ({ items, columns = 3, title, subtit
               <div className="text-slate-700 text-sm flex-1">{c.text}</div>
               {(c.to || c.linkText) && (
                 <div className="mt-4">
-                  <Link to={c.to ?? '#'} className="text-blue-600 hover:underline font-medium">
+                  <a href={c.to ?? '#'} className="text-blue-600 hover:underline font-medium">
                     {c.linkText ?? 'Learn more'}
-                  </Link>
+                  </a>
                 </div>
               )}
             </div>

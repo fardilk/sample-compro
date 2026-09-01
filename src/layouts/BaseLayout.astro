@@ -1,0 +1,86 @@
+---
+import '../index.css';
+// Only solid icons are used, so brands and regular (and their webfonts) stay out.
+import '@fortawesome/fontawesome-free/css/fontawesome.min.css';
+import '@fortawesome/fontawesome-free/css/solid.min.css';
+import Header from '../components/global/Header';
+import Footer from '../components/global/Footer';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  /** Set on pages that should not be indexed. */
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description = 'Training, Consultancy, and Coaching to move your business forward.',
+  image = '/img/og-default.jpg',
+  noindex = false,
+} = Astro.props;
+
+// Astro.site comes from astro.config.mjs, so every page gets a real canonical
+// instead of the hardcoded one the old build shipped.
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const imageUrl = new URL(image, Astro.site).href;
+const fullTitle = title === 'Excellence Plus Indonesia' ? title : `${title} | Excellence Plus Indonesia`;
+
+const organization = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Excellence Plus Indonesia',
+  url: Astro.site?.href,
+  logo: new URL('/img/logo-excellence-plus-indonesia.png', Astro.site).href,
+  description,
+  email: 'training@excellenceplus.id',
+  telephone: '+62-812-9293-4488',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Aldeoz Building, Jl. Wr. Jati Barat No.39 6th Floor, Jati Padang, Kec. Pancoran',
+    addressLocality: 'Jakarta Selatan',
+    addressRegion: 'DKI Jakarta',
+    postalCode: '12540',
+    addressCountry: 'ID',
+  },
+};
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/img/favicon.ico" />
+
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Excellence Plus Indonesia" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="id_ID" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(organization)} />
+  </head>
+  <body>
+    <Header client:load />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

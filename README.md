@@ -1,69 +1,47 @@
-# React + TypeScript + Vite
+# excellenceplusweb
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Marketing site for Excellence Plus Indonesia. Astro (static output) with React
+islands, Tailwind CSS v4, served by nginx in a container.
 
-Currently, two official plugins are available:
+## Commands
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+| Command | Does |
+| --- | --- |
+| `npm run dev` | Dev server on http://localhost:4321 |
+| `npm run build` | Type-check (`astro check`) then build to `dist/` |
+| `npm run preview` | Serve the built `dist/` locally |
+| `npm run check` | Type-check only |
 
-## Expanding the ESLint configuration
+## Layout
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+src/
+  pages/          file-based routes (.astro)
+  layouts/        BaseLayout.astro — head, SEO tags, JSON-LD, header/footer
+  sections/       page-sized React blocks rendered at build time (no JS shipped)
+  components/     reusable React components; only some are hydrated
+  data/           route tables and content collections
+  utils/          hoverMenu.ts (navigation tree), serviceLinks.ts (URL helpers)
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Pages render to static HTML. React ships to the browser only where a component
+is marked `client:*` in a page: the header menu, the event countdown, the
+contact form, the blog slider, the team/history carousels, and the service
+variant blocks (tabs and accordions).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+`src/utils/serviceLinks.ts` is the single source of truth for `/services/*`
+URLs. The header, the homepage grid, the catalogue and the static route
+generator all call it — change slugs there, not in the call sites.
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Configuration
+
+`SITE_URL` (build time) sets canonical links, OG tags and the sitemap. It
+defaults to `https://excellenceplus.id`; `.env.production` carries
+`VITE_SITE_URL` for compatibility with the previous build.
+
+## Deploy
+
+`Dockerfile` builds the site and serves `dist/` with nginx using `nginx.conf`,
+which supplies the SPA-style fallback, gzip and cache headers. GitHub Actions
+publishes to GHCR and redeploys the VPS: `dev` branch to port 8080,
+`main` branch to port 8081.

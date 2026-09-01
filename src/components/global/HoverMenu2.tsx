@@ -1,7 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import type { HoverMenuItem } from '../../utils/hoverMenu';
-import { slugify } from '../../utils/slugify';
+import { serviceHref } from '../../utils/serviceLinks';
 
 interface HoverMenu2Props {
   items: HoverMenuItem[];
@@ -20,13 +19,11 @@ const HoverMenu2: React.FC<HoverMenu2Props> = ({ items, className, linkBuilder, 
         // If a linkBuilder is provided, supply parent context as 2nd arg
         const topTo = linkBuilder
           ? linkBuilder(item, parent)
-          : (parent
-              ? `/services/${slugify(parent.label)}/${slugify(item.label)}`
-              : `/training/${slugify(item.label)}`);
+          : serviceHref(parent ? parent.label : item.label, parent ? item.label : undefined);
         return (
           <React.Fragment key={item.label}>
-            <Link
-              to={topTo}
+            <a
+              href={topTo}
               onClick={onNavigate}
               className="relative flex items-start bg-white border border-gray-200 rounded-lg shadow-md px-6 py-5 hover:shadow-xl transition-shadow duration-200 group cursor-pointer"
             >
@@ -40,18 +37,18 @@ const HoverMenu2: React.FC<HoverMenu2Props> = ({ items, className, linkBuilder, 
               <span className="ml-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 <i className="fa fa-chevron-right text-xl text-blue-600" aria-hidden="true"></i>
               </span>
-            </Link>
+            </a>
             {/* Render children as cards if present */}
             {item.children && item.children.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
                 {item.children.map((child) => {
                   const childTo = linkBuilder
                     ? linkBuilder(child, item)
-                    : `/services/${slugify(item.label)}/${slugify(child.label)}`;
+                    : serviceHref(item.label, child.label);
                   return (
-                    <Link
+                    <a
                       key={child.label}
-                      to={childTo}
+                      href={childTo}
                       onClick={onNavigate}
                       className="relative flex items-start bg-white border border-gray-100 rounded-lg shadow px-5 py-4 hover:shadow-lg transition-shadow duration-200 group cursor-pointer"
                     >
@@ -65,7 +62,7 @@ const HoverMenu2: React.FC<HoverMenu2Props> = ({ items, className, linkBuilder, 
                       <span className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         <i className="fa fa-chevron-right text-lg text-green-600" aria-hidden="true"></i>
                       </span>
-                    </Link>
+                    </a>
                   );
                 })}
               </div>

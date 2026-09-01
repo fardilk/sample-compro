@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import TrainingService from '../../../components/services/TrainingService';
+import ServiceDetail from '../../../components/services/ServiceDetail';
+import { serviceRoutes } from '../../../data/serviceRoutes';
+import { trainingPrograms } from '../../../data/trainingPrograms';
+
+export function getStaticPaths() {
+  return serviceRoutes.map((r) => ({
+    params: { category: r.categorySlug, id: r.idSlug },
+    props: r,
+  }));
+}
+
+const { categorySlug, categoryLabel, idSlug, title, description } = Astro.props;
+
+// Training programs carry authored content and their own related-program grids.
+const program = categorySlug === 'training'
+  ? trainingPrograms.find((p) => p.slug === idSlug)
+  : undefined;
+
+const heroImage = program?.content.hero?.imageSrc ?? '/img/og-default.jpg';
+---
+
+<BaseLayout title={`${title} — ${categoryLabel}`} description={description} image={heroImage}>
+  <nav aria-label="Breadcrumb" class="bg-slate-900 text-white pt-10 pb-4">
+    <div class="mx-auto text-sm" style="width: 90%">
+      <a href="/services" class="text-slate-300 hover:text-white underline">Services</a>
+      <span class="mx-2 text-slate-500">/</span>
+      <span class="text-slate-300">{categoryLabel}</span>
+      <span class="mx-2 text-slate-500">/</span>
+      <span class="text-white font-medium">{title}</span>
+    </div>
+  </nav>
+
+  {/* Tabs and accordions inside the variants need state, so these hydrate.
+      ponytail: whole-subtree island; split per section only if the JS shows up in a budget. */}
+  {
+    program
+      ? <TrainingService client:visible title={program.title} subtitle={program.subtitle} overrideContent={program.content} />
+      : <ServiceDetail client:visible categoryLabel={categoryLabel} title={title} description={description} />
+  }
+</BaseLayout>

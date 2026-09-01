@@ -3,11 +3,8 @@ import type { HeaderProps } from '../types';
 import Button from './Button';
 import { mainMenu } from '../../utils/hoverMenu';
 import type { HoverMenuItem } from '../../utils/hoverMenu';
-import FontAwesome from './FontAwesome';
 import HoverMenu2 from './HoverMenu2';
-import { Link } from 'react-router-dom';
-
-const slugify = (s: string) => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+import { serviceHref } from '../../utils/serviceLinks';
 
 const Header: React.FC<HeaderProps> = ({ className = '' }) => {
   const [openMenuIdx, setOpenMenuIdx] = React.useState<number | null>(null);
@@ -25,25 +22,8 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
     }
   };
 
-  const buildServiceLink = (item: HoverMenuItem, parent?: HoverMenuItem): string => {
-    // Determine category based on parent or item label
-    const category = parent ? parent.label : item.label;
-    const id = parent ? item.label : item.label; // Always use item label for ID
-
-    // Map category to specific slug
-    const categorySlugMap: Record<string, string> = {
-      'Training': 'training',
-      'Consultancy': 'consultancy',
-      'Coaching': 'coaching',
-      'Executive Search & Recruitment': 'executive-search',
-      'Employer of Record (EOR)': 'employer-of-record',
-    };
-
-    const catSlug = categorySlugMap[category] || slugify(category);
-    const idSlug = slugify(id);
-
-    return `/services/${catSlug}/${idSlug}`;
-  };
+  const buildServiceLink = (item: HoverMenuItem, parent?: HoverMenuItem): string =>
+    serviceHref(parent ? parent.label : item.label, parent ? item.label : undefined);
 
   const buildWhoWeAreLink = (item: HoverMenuItem): string => {
     const label = item.label.toLowerCase();
@@ -66,27 +46,26 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
 
   return (
     <>
-      <FontAwesome />
       <header className={`bg-white shadow-lg sticky top-0 z-50 transition-shadow duration-200 ${className}`}
         onMouseEnter={e => e.currentTarget.classList.add('shadow-2xl')}
         onMouseLeave={e => e.currentTarget.classList.remove('shadow-2xl')}
       >
         <nav className="mx-auto" style={{ width: '90%' }}>
-          <div className="grid grid-cols-[20%_auto_auto] items-center h-[6em] w-full">
+          <div className="grid grid-cols-[auto_1fr_auto] items-center h-[6em] w-full gap-4">
             {/* Left: Logo */}
             <div className="flex items-center min-w-[10rem]">
-              <Link to="/" aria-label="Go to homepage" className="inline-block">
+              <a href="/" aria-label="Go to homepage" className="inline-block">
                 <img src="/img/logo-excellence-plus-indonesia.png" alt="Excellence Plus Indonesia" className="h-auto w-[10rem] cursor-pointer" />
-              </Link>
+              </a>
             </div>
             {/* Middle: Nav Links (center column, left-aligned, wider) */}
-            <div className="flex items-center justify-start">
-              <div className="hidden md:flex w-full gap-4">
-                <div className="flex gap-2 whitespace-nowrap w-full">
+            <div className="flex items-center justify-start min-w-0">
+              <div className="hidden md:flex w-full gap-4 min-w-0">
+                <div className="flex gap-1 lg:gap-2 min-w-0 overflow-x-auto">
                   {mainMenu.map((item, idx) => (
                     <button
                       key={item.label}
-                      className={`flex items-center px-4 py-2 text-gray-800 hover:text-blue-600 rounded-md text-sm font-medium focus:outline-none whitespace-nowrap cursor-pointer ${openMenuIdx === idx ? 'bg-gray-100' : ''}`}
+                      className={`flex items-center px-3 lg:px-4 py-2 text-gray-800 hover:text-blue-600 rounded-md text-sm font-medium focus:outline-none whitespace-nowrap cursor-pointer shrink-0 ${openMenuIdx === idx ? 'bg-gray-100' : ''}`}
                       onClick={() => handleMenuClick(idx)}
                     >
                       {item.label}

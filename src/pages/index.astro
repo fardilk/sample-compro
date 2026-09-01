@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Banner from '../components/home/Banner';
+import Stats from '../components/home/Stats';
+import About from '../components/home/About';
+import UpcomingEvent from '../components/home/UpcomingEvent';
+import HomeServices from '../sections/HomeServices';
+import ContactInfo from '../sections/ContactInfo';
+import ContactForm from '../components/ui/ContactForm';
+
+const description =
+  'Excellence Plus Indonesia: training, consultancy, coaching, executive search dan Employer of Record untuk mendorong performa bisnis Anda.';
+---
+
+<BaseLayout title="Excellence Plus Indonesia" description={description}>
+  <section class="hero-section">
+    <Banner />
+  </section>
+
+  {/* Countdown ticks every second, so this one hydrates. */}
+  <UpcomingEvent client:visible />
+
+  <Stats />
+  <About />
+  <HomeServices />
+
+  <section class="contact-section bg-white" id="contact">
+    <div class="container mx-auto px-4 py-16">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl mb-4 font-bold text-gray-900">Get In Touch</h2>
+        <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+          Ready to start your next project? Contact us today and let's discuss how we can help.
+        </p>
+      </div>
+      <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-10">
+        <ContactInfo />
+        <div class="bg-white rounded-lg shadow p-6">
+          <ContactForm client:visible />
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -36,3 +36,6 @@ github_ci.b64
 *.pem
 *.key
 *.b64
+
+# Astro generated types
+.astro

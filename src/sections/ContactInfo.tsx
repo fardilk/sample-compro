@@ -1,24 +1,9 @@
 import React from 'react';
-import { Header, Footer, FontAwesome } from '../components/global';
-import ContactForm from '../components/ui/ContactForm';
 
-const ContactPage: React.FC = () => {
-  return (
-    <div className="contact-page">
-      <Header />
-      <section className="bg-gray-50">
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-800 mb-4">Get In Touch</h1>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Ready to start your next project? Contact us today and let's discuss how we can help.
-            </p>
-          </div>
-
-          <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10">
-            {/* Contact Info */}
-            <div>
-              <h2 className="text-2xl font-semibold mb-6">Contact Information</h2>
+/** Phone, email and address block shown next to the contact form. */
+const ContactInfo: React.FC<{ heading?: string }> = ({ heading = 'Contact Information' }) => (
+  <div>
+    <h3 className="text-2xl font-semibold mb-6">{heading}</h3>
               <div className="space-y-4 text-gray-700">
                 <div className="flex items-center">
                   <svg className="w-6 h-6 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,19 +24,7 @@ const ContactPage: React.FC = () => {
                   <span>Jl. Wr. Jati Barat No.39 6th Floor, Jati Padang, Kec. Pancoran, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12540</span>
                 </div>
               </div>
-            </div>
+  </div>
+);
 
-            {/* Form */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <ContactForm />
-            </div>
-          </div>
-        </div>
-      </section>
-      <Footer />
-      <FontAwesome />
-    </div>
-  );
-};
-
-export default ContactPage;
+export default ContactInfo;

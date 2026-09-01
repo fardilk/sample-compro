@@ -1,15 +1,13 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Header, Footer, FontAwesome } from '../components/global';
 import { mainMenu } from '../utils/hoverMenu';
 import type { HoverMenuItem } from '../utils/hoverMenu';
+import { categorySlug, serviceHref } from '../utils/serviceLinks';
 
-const slugify = (s: string) => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
 const getServicesRoot = (): HoverMenuItem | undefined =>
   mainMenu.find((m) => m.label === 'Our Services');
 
-const ServicesPage: React.FC = () => {
+const ServicesCatalog: React.FC = () => {
   const servicesRoot = getServicesRoot();
   const categories = servicesRoot?.children ?? [];
 
@@ -26,16 +24,13 @@ const ServicesPage: React.FC = () => {
 
   return (
     <div className="services-page">
-      <FontAwesome />
-      <Header />
-
       {/* Hero */}
       <section className="bg-gradient-to-r from-slate-900 to-slate-700 text-white pt-16 pb-14">
         <div className="mx-auto" style={{ width: '90%' }}>
           <p className="text-yellow-400 font-semibold tracking-wide mb-2">Excellence Plus Indonesia</p>
           <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-4">Innovative Solutions To Move Your Business Forward.</h1>
           <p className="text-lg md:text-xl text-slate-200 max-w-3xl mb-6">{heroDesc}</p>
-          <Link to="/services" className="inline-block bg-white text-slate-900 px-6 py-3 rounded-md font-semibold hover:bg-slate-100 transition-colors">Get Started</Link>
+          <a href="/services" className="inline-block bg-white text-slate-900 px-6 py-3 rounded-md font-semibold hover:bg-slate-100 transition-colors">Get Started</a>
         </div>
       </section>
 
@@ -49,9 +44,9 @@ const ServicesPage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
             {categories.map((cat, idx) => {
               const palette = colorSets[idx % colorSets.length];
-              const catSlug = slugify(cat.label);
+              const catSlug = categorySlug(cat.label);
               const firstChild = (cat.children ?? [])[0];
-              const firstChildSlug = firstChild ? slugify(firstChild.label) : undefined;
+              const firstHref = firstChild ? serviceHref(cat.label, firstChild.label) : undefined;
               const description = (cat.description ?? `Discover ${cat.label} programs tailored to your goals—designed to elevate capabilities, accelerate outcomes, and deliver results.`).slice(0, 120);
 
               return (
@@ -62,8 +57,8 @@ const ServicesPage: React.FC = () => {
                   <h3 className="font-semibold text-lg mb-1">{cat.label}</h3>
                   <p className="text-slate-600 text-sm flex-1">{description}</p>
                   <div className="mt-4 flex gap-2">
-                    {firstChildSlug ? (
-                      <Link to={`/services/${catSlug}/${firstChildSlug}`} className="text-blue-600 hover:underline text-sm">View Details</Link>
+                    {firstHref ? (
+                      <a href={firstHref} className="text-blue-600 hover:underline text-sm">View Details</a>
                     ) : null}
                     <a href={`#section-${catSlug}`} className="text-slate-700 hover:underline text-sm">Explore Category</a>
                   </div>
@@ -78,7 +73,7 @@ const ServicesPage: React.FC = () => {
       <section className="bg-gray-50 py-12">
         <div className="mx-auto space-y-14" style={{ width: '90%' }}>
           {categories.map((cat, idx) => {
-            const catSlug = slugify(cat.label);
+            const catSlug = categorySlug(cat.label);
             const palette = colorSets[idx % colorSets.length];
             const niceCopy = cat.description ?? `Experience ${cat.label} crafted to transform performance with practical frameworks, hands-on guidance, and outcomes you can measure.`;
             const children = cat.children ?? [];
@@ -89,9 +84,9 @@ const ServicesPage: React.FC = () => {
                   <p className="text-slate-700 mb-5">{niceCopy}</p>
                   <div className="flex flex-wrap gap-2">
                     {children.map((child) => (
-                      <Link key={child.label} to={`/services/${catSlug}/${slugify(child.label)}`} className="px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-sm">
+                      <a key={child.label} href={serviceHref(cat.label, child.label)} className="px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-sm">
                         {child.label}
-                      </Link>
+                      </a>
                     ))}
                   </div>
                 </div>
@@ -105,10 +100,8 @@ const ServicesPage: React.FC = () => {
           })}
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 };
 
-export default ServicesPage;
+export default ServicesCatalog;

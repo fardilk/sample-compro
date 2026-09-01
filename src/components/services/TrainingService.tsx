@@ -1,11 +1,10 @@
 import React from 'react';
-import Variant1 from '../../components/services/variants/Variant1';
-import Variant3 from '../../components/services/variants/Variant3';
-import Variant5 from '../../components/services/variants/Variant5';
-import type { VariantContent } from '../../components/services/types';
-import CardGrid from '../../components/services/CardGrid';
+import Variant1 from './variants/Variant1';
+import Variant3 from './variants/Variant3';
+import Variant5 from './variants/Variant5';
+import type { VariantContent } from './types';
+import CardGrid from './CardGrid';
 import { mainMenu } from '../../utils/hoverMenu';
-import { Header, Footer, FontAwesome } from '../../components/global';
 
 const slugify = (s: string) => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
@@ -22,7 +21,7 @@ const pickTrainingVariant = (label: string) => {
   return Variant1; // leadership, sales, service excellence, butler, default
 };
 
-const TrainingServicePage: React.FC<Props> = ({ title, subtitle, overrideContent }) => {
+const TrainingService: React.FC<Props> = ({ title, subtitle, overrideContent }) => {
   // Render the selected variant with override content
   const Selected = pickTrainingVariant(title);
 
@@ -53,8 +52,6 @@ const TrainingServicePage: React.FC<Props> = ({ title, subtitle, overrideContent
 
   return (
     <div>
-      <FontAwesome />
-      <Header />
       <Selected title={title} subtitle={subtitle} overrideContent={overrideContent} />
 
       {trainingCards.length > 0 && (
@@ -74,9 +71,8 @@ const TrainingServicePage: React.FC<Props> = ({ title, subtitle, overrideContent
           items={otherCatCards}
         />
       )}
-      <Footer />
     </div>
   );
 };
 
-export default TrainingServicePage;
+export default TrainingService;
