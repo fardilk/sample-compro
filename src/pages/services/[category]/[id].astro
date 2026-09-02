@@ -51,6 +51,8 @@ const cms = Astro.props.cms as CmsServiceType | null;
 async function localise(path: string, width: number, height: number) {
   const src = mediaURL(path);
   if (!src) return undefined;
+  // Already served from public/; nothing to fetch or optimise.
+  if (src.startsWith('/')) return src;
   try {
     const image = await getImage({ src, width, height, format: 'webp' });
     return image.src;

@@ -1,41 +1,203 @@
 ---
+import { getImage } from 'astro:assets';
+
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Banner from '../components/home/Banner';
-import Stats from '../components/home/Stats';
-import About from '../components/home/About';
-import UpcomingEvent from '../components/home/UpcomingEvent';
-import HomeServices from '../sections/HomeServices';
+import NextBatch from '../components/home/NextBatch';
+import ProgramCatalog from '../components/home/ProgramCatalog';
+import type { ProgramCard, ProgramGroup } from '../components/home/ProgramCatalog';
 import ContactInfo from '../sections/ContactInfo';
 import ContactForm from '../components/ui/ContactForm';
+import { getServices, mediaURL } from '../lib/cms';
+import type { CmsService } from '../lib/cms';
+import { serviceRoutes } from '../data/serviceRoutes';
+import { trainingPrograms } from '../data/trainingPrograms';
 
-const description =
-  'Excellence Plus Indonesia: training, consultancy, coaching, executive search dan Employer of Record untuk mendorong performa bisnis Anda.';
+const services = await getServices();
+const cms = new Map(services.map((s) => [`${s.category}/${s.slug}`, s]));
+const repo = new Map(trainingPrograms.map((p) => [p.slug, p]));
+
+async function localise(path: string | undefined, width: number, height: number) {
+  const src = mediaURL(path);
+  if (!src) return undefined;
+  // Already served from public/; nothing to fetch or optimise.
+  if (src.startsWith('/')) return src;
+  try {
+    const image = await getImage({ src, width, height, format: 'webp' });
+    return image.src;
+  } catch {
+    return undefined;
+  }
+}
+
+const dateFormat = new Intl.DateTimeFormat('id-ID', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'Asia/Jakarta',
+});
+
+const upcomingOf = (s: CmsService) =>
+  s.schedules
+    .filter((x) => x.starts_at)
+    .sort((a, b) => new Date(a.starts_at!).getTime() - new Date(b.starts_at!).getTime())
+    .find((x) => new Date(x.starts_at!).getTime() > Date.now());
+
+/** Cheapest listed price, which is what a catalogue card should lead with. */
+const clean = (v: string | undefined | null) =>
+  v && /\d/.test(v) && !v.includes('[') ? v.trim() : undefined;
+
+const priceOf = (s: CmsService) => s.plans.map((p) => clean(p.price)).find(Boolean);
+
+// One card per route we have real content for. A route with neither a CMS
+// entry nor its own written page is still running on generic filler, so it is
+// left out rather than advertised — the same rule the content audit applies.
+const cards = new Map<string, ProgramCard>();
+for (const route of serviceRoutes) {
+  const key = `${route.categorySlug}/${route.idSlug}`;
+  const entry = cms.get(key);
+  const written = repo.get(route.idSlug);
+  if (!entry && !written) continue;
+
+  const schedule = entry ? upcomingOf(entry) : undefined;
+  cards.set(key, {
+    href: `/services/${key}`,
+    title: entry?.title ?? written?.title ?? route.title,
+    blurb: entry?.subtitle || written?.subtitle || route.description,
+    date: schedule?.starts_at ? dateFormat.format(new Date(schedule.starts_at)) : undefined,
+    price: clean(schedule?.price) ?? (entry ? priceOf(entry) : undefined),
+    cover: entry ? await localise(entry.hero_image, 600, 340) : undefined,
+  });
+}
+
+// A programme created in the CMS need not exist in the menu tree, so add any
+// that the route loop did not already cover.
+for (const service of services) {
+  const key = `${service.category}/${service.slug}`;
+  if (cards.has(key)) continue;
+  const schedule = upcomingOf(service);
+  cards.set(key, {
+    href: `/services/${key}`,
+    title: service.title,
+    blurb: service.subtitle ?? '',
+    date: schedule?.starts_at ? dateFormat.format(new Date(schedule.starts_at)) : undefined,
+    price: clean(schedule?.price) ?? priceOf(service),
+    cover: await localise(service.hero_image, 600, 340),
+  });
+}
+
+const extraOf = (slug: string) =>
+  services
+    .filter((s) => s.category === slug && !serviceRoutes.some((r) => r.categorySlug === slug && r.idSlug === s.slug))
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((s) => cards.get(`${s.category}/${s.slug}`)!)
+    .filter(Boolean);
+
+// Categories in selling order, each with the one line that says who it is for.
+const CATEGORY_BLURB: Record<string, string> = {
+  training: 'Program terjadwal untuk membangun kemampuan yang bisa langsung dipakai besok pagi.',
+  coaching: 'Pendampingan satu lawan satu dan tim, untuk perubahan yang tidak selesai lewat pelatihan.',
+  consultancy: 'Pendampingan operasional: struktur, SOP, dan disiplin biaya, dikerjakan bersama tim Anda.',
+  'executive-search': 'Mencari orang yang tidak sedang melamar, untuk posisi yang sulit diisi.',
+  'employer-of-record': 'Mempekerjakan di Indonesia tanpa mendirikan badan usaha sendiri.',
+};
+const ORDER = ['training', 'coaching', 'consultancy', 'executive-search', 'employer-of-record'];
+
+const labels = new Map(serviceRoutes.map((r) => [r.categorySlug, r.categoryLabel]));
+
+const groups: ProgramGroup[] = ORDER.map((slug) => ({
+  label: labels.get(slug) ?? slug,
+  blurb: CATEGORY_BLURB[slug] ?? '',
+  items: [
+    ...extraOf(slug),
+    ...serviceRoutes
+      .filter((r) => r.categorySlug === slug)
+      .map((r) => cards.get(`${r.categorySlug}/${r.idSlug}`))
+      .filter((c): c is ProgramCard => Boolean(c)),
+  ],
+})).filter((g) => g.items.length > 0);
+
+// The nearest upcoming batch across every programme drives the countdown, so it
+// can never be the fabricated "always tomorrow" it used to be.
+const batches = services
+  .flatMap((service) => service.schedules.filter((s) => s.starts_at).map((schedule) => ({ service, schedule })))
+  .sort((a, b) => new Date(a.schedule.starts_at!).getTime() - new Date(b.schedule.starts_at!).getTime());
+
+const next = batches.find((b) => new Date(b.schedule.starts_at!).getTime() > Date.now()) ?? null;
+const nextCover = next ? cards.get(`${next.service.category}/${next.service.slug}`)?.cover : undefined;
+
+const totalPrograms = groups.reduce((n, g) => n + g.items.length, 0);
+
+// slug -> title, so a `?program=` link keeps its programme name on the form.
+const programs = Object.fromEntries(services.map((s) => [s.slug, s.title]));
 ---
 
-<BaseLayout title="Excellence Plus Indonesia" description={description}>
-  <section class="hero-section">
-    <Banner />
+
+<BaseLayout
+  title="Excellence Plus Indonesia"
+  description="Program training bersertifikasi BNSP, coaching, consultancy, executive search, dan Employer of Record untuk perusahaan di Indonesia."
+>
+  <section class="bg-slate-900 text-white">
+    <div class="mx-auto py-16 md:py-20" style="width: 90%">
+      <p class="text-sm font-semibold uppercase tracking-wide text-orange-main">
+        Excellence Plus Indonesia
+      </p>
+      <h1 class="mt-3 max-w-3xl text-4xl font-extrabold leading-tight md:text-5xl">
+        Program yang membuat tim Anda bekerja lebih baik, bukan sekadar lebih sibuk.
+      </h1>
+      <p class="mt-4 max-w-2xl text-lg text-slate-200">
+        {totalPrograms} program berjalan: sertifikasi trainer berlisensi BNSP, coaching untuk
+        pemimpin dan tim, pendampingan operasional, sampai rekrutmen dan Employer of Record.
+      </p>
+      <div class="mt-7 flex flex-wrap gap-3">
+        <a
+          href="#kategori-training-sertifikasi"
+          class="rounded-lg bg-orange-main px-6 py-3 font-semibold text-white hover:bg-orange-dark"
+        >
+          Lihat Semua Program
+        </a>
+        <a
+          href="/home/contact"
+          class="rounded-lg border border-white/25 px-6 py-3 font-semibold text-white hover:bg-white/10"
+        >
+          Konsultasi Gratis
+        </a>
+      </div>
+    </div>
   </section>
 
-  {/* Countdown ticks every second, so this one hydrates. */}
-  <UpcomingEvent client:visible />
+  {
+    next && (
+      <NextBatch
+        client:visible
+        title={next.service.title}
+        href={`/services/${next.service.category}/${next.service.slug}`}
+        startsAt={next.schedule.starts_at!}
+        endsAt={next.schedule.ends_at}
+        city={next.schedule.city}
+        format={next.schedule.format}
+        seatsLeft={next.schedule.seats_left}
+        seatsTotal={next.schedule.seats_total}
+        registerUrl={next.schedule.register_url}
+        image={nextCover}
+      />
+    )
+  }
 
-  <Stats />
-  <About />
-  <HomeServices />
+  <ProgramCatalog groups={groups} />
 
-  <section class="contact-section bg-white" id="contact">
-    <div class="container mx-auto px-4 py-16">
-      <div class="text-center mb-12">
-        <h2 class="text-3xl md:text-4xl mb-4 font-bold text-gray-900">Get In Touch</h2>
-        <p class="text-lg text-gray-600 max-w-3xl mx-auto">
-          Ready to start your next project? Contact us today and let's discuss how we can help.
+  <section class="bg-white py-14" id="contact">
+    <div class="mx-auto" style="width: 90%">
+      <div class="mb-10 max-w-2xl">
+        <h2 class="text-2xl font-bold md:text-3xl">Daftar atau tanya dulu</h2>
+        <p class="mt-2 text-slate-600">
+          Sebutkan program yang Anda maksud, kami balas dalam 1x24 jam kerja. Untuk pendaftaran
+          batch, kami konfirmasi ketersediaan kuota sebelum pembayaran.
         </p>
       </div>
-      <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-10">
-        <ContactInfo />
-        <div class="bg-white rounded-lg shadow p-6">
-          <ContactForm client:visible />
+      <div class="mx-auto grid max-w-5xl gap-10 md:grid-cols-2">
+        <ContactInfo heading="Hubungi Kami" />
+        <div class="rounded-xl border border-slate-200 p-6">
+          <ContactForm client:visible programs={programs} />
         </div>
       </div>
     </div>

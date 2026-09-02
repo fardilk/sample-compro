@@ -14,6 +14,8 @@ export type ContactFormProps = {
   className?: string;
   buttonLabel?: string;
   onSuccess?: (values: ContactFormValues) => void;
+  /** slug -> programme title, so `?program=` can be shown by name. */
+  programs?: Record<string, string>;
 };
 
 // Same origin as the site, so this is a plain first-party request with no CORS
@@ -37,12 +39,27 @@ const ContactForm: React.FC<ContactFormProps> = ({
   className = '',
   buttonLabel = 'Kirim Pesan',
   onSuccess,
+  programs = {},
 }) => {
   const [form, setForm] = React.useState<ContactFormValues>(initialForm);
   const [errors, setErrors] = React.useState<FieldErrors>({});
   const [submitting, setSubmitting] = React.useState(false);
   const [showSuccess, setShowSuccess] = React.useState(false);
   const [failed, setFailed] = React.useState(false);
+
+  // Set when the visitor arrived from a programme's Daftar button. Read after
+  // mount so the static HTML stays identical for every query string.
+  const [program, setProgram] = React.useState<string>('');
+
+  React.useEffect(() => {
+    const slug = new URLSearchParams(window.location.search).get('program');
+    if (!slug) return;
+    setProgram(slug);
+    const label = programs[slug] ?? slug;
+    setForm((prev) =>
+      prev.message ? prev : { ...prev, message: `Saya ingin mendaftar program ${label}.` },
+    );
+  }, [programs]);
 
   // Hidden from people, so anything that fills it is automated. The value is
   // posted as-is and the API drops the submission.
@@ -79,7 +96,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
         body: JSON.stringify({
           ...form,
           website: honeypot,
-          source_path: window.location.pathname,
+          source_path: window.location.pathname + window.location.search,
         }),
       });
 
@@ -110,6 +127,11 @@ const ContactForm: React.FC<ContactFormProps> = ({
   return (
     <div className={className}>
       <form className="relative space-y-4" onSubmit={onSubmit} noValidate>
+        {program && (
+          <div className="rounded-md border border-orange-200 bg-orange-50 px-3 py-2 text-sm text-orange-dark">
+            Pendaftaran: <strong>{programs[program] ?? program}</strong>
+          </div>
+        )}
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
             Nama <span className="text-red-500">*</span>

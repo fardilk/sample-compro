@@ -2,6 +2,10 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ContactInfo from '../../sections/ContactInfo';
 import ContactForm from '../../components/ui/ContactForm';
+import { getServices } from '../../lib/cms';
+
+// slug -> title, so a `?program=` link can name the programme it came from.
+const programs = Object.fromEntries((await getServices()).map((s) => [s.slug, s.title]));
 ---
 
 <BaseLayout
@@ -19,7 +23,7 @@ import ContactForm from '../../components/ui/ContactForm';
       <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-10">
         <ContactInfo heading="Contact Information" />
         <div class="bg-white rounded-lg shadow p-6">
-          <ContactForm client:visible />
+          <ContactForm client:visible programs={programs} />
         </div>
       </div>
     </div>

@@ -106,6 +106,9 @@ export function getServices(): Promise<CmsService[]> {
 export function mediaURL(path: string | undefined | null): string | undefined {
   if (!path) return undefined;
   if (/^https?:\/\//i.test(path)) return path;
+  // Art shipped with the site rather than uploaded to the CMS. Prefixing the
+  // API base turns these into 404s, so leave them pointing at public/.
+  if (path.startsWith('/img/')) return path;
   return `${API}${path.startsWith('/') ? '' : '/'}${path}`;
 }
 
