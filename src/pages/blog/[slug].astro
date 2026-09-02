@@ -1,0 +1,129 @@
+---
+import { getImage } from 'astro:assets';
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleBody from '../../components/blog/ArticleBody';
+import { getArticles, articleBlocks, mediaURL } from '../../lib/cms';
+import type { CmsArticle } from '../../lib/cms';
+
+export async function getStaticPaths() {
+  const articles = await getArticles();
+  return articles
+    .filter((a) => a.slug)
+    .map((article) => ({ params: { slug: article.slug }, props: { article } }));
+}
+
+const article = Astro.props.article as CmsArticle;
+const blocks = articleBlocks(article);
+
+/** Pull CMS images into the build so the page does not depend on the API. */
+async function localise(path: string | undefined, width: number, height: number) {
+  const src = mediaURL(path);
+  if (!src) return undefined;
+  try {
+    const image = await getImage({ src, width, height, format: 'webp' });
+    return image.src;
+  } catch {
+    return undefined;
+  }
+}
+
+const heroImage = await localise(article.featured_image, 1200, 630);
+
+// Block images are resolved up front and passed down by original path, since
+// the renderer is a React component and cannot await.
+const images: Record<string, string> = {};
+for (const block of blocks) {
+  const url = block.data.url;
+  if (block.type !== 'image' || !url || images[url]) continue;
+  const local = await localise(url, 1200, 800);
+  if (local) images[url] = local;
+}
+
+const dateFormat = new Intl.DateTimeFormat('id-ID', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'Asia/Jakarta',
+});
+
+const published = article.published_at ? dateFormat.format(new Date(article.published_at)) : null;
+const categories = article.categories ?? [];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: article.title,
+  description: article.meta_description || article.excerpt,
+  datePublished: article.published_at ?? undefined,
+  image: heroImage ? new URL(heroImage, Astro.site).href : undefined,
+  publisher: {
+    '@type': 'Organization',
+    name: 'Excellence Plus Indonesia',
+  },
+  mainEntityOfPage: new URL(`/blog/${article.slug}`, Astro.site).href,
+};
+---
+
+<BaseLayout
+  title={article.meta_title || article.title}
+  description={article.meta_description || article.excerpt}
+  image={heroImage ?? '/img/og-default.jpg'}
+>
+  <article class="bg-white pb-16">
+    <header class="bg-slate-900 pt-12 pb-10 text-white">
+      <div class="mx-auto" style="width: 90%; max-width: 48rem">
+        <a href="/blog" class="text-sm text-slate-300 underline hover:text-white">Insights &amp; Stories</a>
+        <h1 class="mt-3 text-3xl font-extrabold leading-tight md:text-4xl">{article.title}</h1>
+        <p class="mt-3 text-sm text-slate-300">
+          {[published, article.reading_time ? `${article.reading_time} menit baca` : null]
+            .filter(Boolean)
+            .join(' · ')}
+        </p>
+        {
+          categories.length > 0 && (
+            <div class="mt-3 flex flex-wrap gap-2">
+              {categories.map((c) => (
+                <span class="rounded-full bg-white/10 px-3 py-1 text-xs">{c.name}</span>
+              ))}
+            </div>
+          )
+        }
+      </div>
+    </header>
+
+    {
+      heroImage && (
+        <div class="mx-auto -mt-6" style="width: 90%; max-width: 48rem">
+          <img
+            src={heroImage}
+            alt={article.alt_text || article.title}
+            width="1200"
+            height="630"
+            class="w-full rounded-xl shadow-lg"
+          />
+        </div>
+      )
+    }
+
+    <div class="mx-auto pt-8" style="width: 90%; max-width: 44rem">
+      {article.excerpt && <p class="mb-6 text-lg text-slate-600">{article.excerpt}</p>}
+      <ArticleBody blocks={blocks} images={images} />
+
+      <div class="mt-12 rounded-xl border border-slate-200 p-6">
+        <h2 class="text-lg font-bold text-slate-900">Butuh bantuan untuk tim Anda?</h2>
+        <p class="mt-1 text-slate-600">
+          Ceritakan kebutuhannya, kami balas dalam 1x24 jam kerja.
+        </p>
+        <a
+          href="/home/contact"
+          class="mt-4 inline-block rounded-md bg-orange-main px-5 py-2.5 font-semibold text-white hover:bg-orange-dark"
+        >
+          Hubungi Kami
+        </a>
+      </div>
+    </div>
+  </article>
+
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+</BaseLayout>

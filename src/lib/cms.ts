@@ -115,3 +115,44 @@ export const hasContent = (s: CmsService): boolean =>
   s.outcomes.length > 0 ||
   s.faqs.length > 0 ||
   s.plans.length > 0;
+
+export type CmsArticleBlock = {
+  type: string;
+  data: {
+    text?: string;
+    level?: 2 | 3;
+    icon?: string;
+    language?: string;
+    url?: string;
+    caption?: string;
+    alt?: string;
+  };
+};
+
+export type CmsArticle = {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string;
+  meta_title: string;
+  meta_description: string;
+  featured_image: string;
+  alt_text: string;
+  reading_time: number;
+  is_featured: boolean;
+  published_at: string | null;
+  content: { blocks?: CmsArticleBlock[] } | null;
+  categories: Array<{ id: number; name: string; slug: string }> | null;
+  tags: Array<{ id: number; name: string; slug: string }> | null;
+};
+
+let articlesCache: Promise<CmsArticle[]> | null = null;
+
+/** Published articles, newest first. Drafts never reach the build. */
+export function getArticles(): Promise<CmsArticle[]> {
+  articlesCache ??= get<CmsArticle[]>('/api/articles?published=true');
+  return articlesCache;
+}
+
+export const articleBlocks = (a: CmsArticle): CmsArticleBlock[] =>
+  Array.isArray(a.content?.blocks) ? a.content!.blocks! : [];
