@@ -1,0 +1,185 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ContactInfo from '../sections/ContactInfo';
+import ContactForm from '../components/ui/ContactForm';
+import Icon from '../components/global/Icon';
+import { getServices } from '../lib/cms';
+
+const services = await getServices();
+
+const dateRange = new Intl.DateTimeFormat('id-ID', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'Asia/Jakarta',
+});
+const dayOnly = new Intl.DateTimeFormat('id-ID', {
+  day: 'numeric',
+  month: 'long',
+  timeZone: 'Asia/Jakarta',
+});
+
+const FORMAT_LABEL: Record<string, string> = {
+  online: 'Daring',
+  public: 'Kelas publik',
+  'in-house': 'In-house',
+};
+
+// Every dated batch across every published programme, soonest first. A batch
+// whose start has passed is dropped rather than shown as still open.
+const batches = services
+  .flatMap((service) =>
+    service.schedules
+      .filter((schedule) => schedule.starts_at)
+      .map((schedule) => ({ service, schedule })),
+  )
+  .filter(({ schedule }) => new Date(schedule.starts_at!).getTime() > Date.now())
+  .sort(
+    (a, b) =>
+      new Date(a.schedule.starts_at!).getTime() - new Date(b.schedule.starts_at!).getTime(),
+  );
+
+const spanOf = (startsAt: string, endsAt?: string | null) => {
+  if (!endsAt || new Date(endsAt).toDateString() === new Date(startsAt).toDateString()) {
+    return dateRange.format(new Date(startsAt));
+  }
+  return `${dayOnly.format(new Date(startsAt))} – ${dateRange.format(new Date(endsAt))}`;
+};
+
+// Bracketed text is an editor's note, never a price to show a customer.
+const priceOf = (value: string) =>
+  value && /\d/.test(value) && !value.includes('[') ? value.trim() : null;
+
+const programs = Object.fromEntries(services.map((s) => [s.slug, s.title]));
+---
+
+<BaseLayout
+  title="Jadwal & Reservasi"
+  description="Jadwal batch training Excellence Plus Indonesia yang masih terbuka, dan formulir reservasi kursi atau sesi konsultasi."
+>
+  <section class="bg-slate-900 text-white">
+    <div class="mx-auto py-14 md:py-16" style="width: 90%">
+      <p class="text-sm font-semibold uppercase tracking-wide text-orange-main">
+        Consultation Program
+      </p>
+      <h1 class="mt-3 max-w-3xl text-4xl font-extrabold leading-tight md:text-5xl">
+        Jadwal &amp; Reservasi
+      </h1>
+      <p class="mt-4 max-w-2xl text-lg text-slate-200">
+        Batch yang masih terbuka ada di bawah. Pilih satu untuk mengunci kursi, atau minta sesi
+        konsultasi 30 menit lebih dulu kalau belum yakin program mana yang cocok.
+      </p>
+      <div class="mt-7 flex flex-wrap gap-3">
+        <a
+          href="#reservasi"
+          class="rounded-lg bg-orange-main px-6 py-3 font-semibold text-white hover:bg-orange-dark"
+        >
+          Reservasi Kursi
+        </a>
+        <a
+          href="/home/contact?type=konsultasi"
+          class="rounded-lg border border-white/25 px-6 py-3 font-semibold text-white hover:bg-white/10"
+        >
+          Book Konsultasi
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-white py-14" id="jadwal">
+    <div class="mx-auto" style="width: 90%">
+      <div class="mb-8 max-w-2xl">
+        <h2 class="text-2xl font-bold md:text-3xl">Batch yang masih terbuka</h2>
+        <p class="mt-2 text-slate-600">
+          Tanggal diambil langsung dari jadwal yang diatur di panel, jadi halaman ini tidak pernah
+          menampilkan batch yang sudah lewat.
+        </p>
+      </div>
+
+      {
+        batches.length === 0 ? (
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-6">
+            <p class="font-semibold text-slate-900">Belum ada batch terjadwal.</p>
+            <p class="mt-1 text-slate-600">
+              Kelas in-house tetap bisa dijalankan kapan saja, menyesuaikan operasional Anda.
+              Sampaikan kebutuhannya lewat formulir di bawah.
+            </p>
+          </div>
+        ) : (
+          <ul class="space-y-4">
+            {batches.map(({ service, schedule }) => (
+              <li class="rounded-xl border border-slate-200 bg-white p-5 transition hover:border-slate-300 hover:shadow-md">
+                <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div class="min-w-0">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-orange-dark">
+                      {service.category_label || service.category}
+                    </p>
+                    <h3 class="mt-1 text-lg font-bold">
+                      <a
+                        href={`/services/${service.category}/${service.slug}`}
+                        class="hover:underline"
+                      >
+                        {service.title}
+                      </a>
+                    </h3>
+                    <p class="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
+                      <span class="flex items-center gap-1.5">
+                        <Icon name="fa-calendar" size={16} color="currentColor" />
+                        {spanOf(schedule.starts_at!, schedule.ends_at)}
+                      </span>
+                      {(schedule.city || schedule.format) && (
+                        <span class="flex items-center gap-1.5">
+                          <Icon name="fa-map-marker-alt" size={16} color="currentColor" />
+                          {[schedule.city, FORMAT_LABEL[schedule.format] ?? schedule.format]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </span>
+                      )}
+                      {schedule.seats_left > 0 && (
+                        <span class="flex items-center gap-1.5">
+                          <Icon name="fa-users" size={16} color="currentColor" />
+                          Sisa {schedule.seats_left}
+                          {schedule.seats_total ? ` dari ${schedule.seats_total}` : ''} kursi
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
+                  <div class="flex shrink-0 items-center gap-4">
+                    {priceOf(schedule.price) && (
+                      <span class="font-semibold text-slate-900">{priceOf(schedule.price)}</span>
+                    )}
+                    <a
+                      href={`/home/contact?program=${service.slug}`}
+                      class="rounded-lg bg-orange-main px-5 py-2.5 font-semibold text-white hover:bg-orange-dark"
+                    >
+                      Reservasi
+                    </a>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="bg-slate-50 py-14" id="reservasi">
+    <div class="mx-auto" style="width: 90%">
+      <div class="mb-10 max-w-2xl">
+        <h2 class="text-2xl font-bold md:text-3xl">Reservasi kursi atau sesi konsultasi</h2>
+        <p class="mt-2 text-slate-600">
+          Sebutkan program dan jumlah peserta. Kami konfirmasi ketersediaan kuota dalam 1x24 jam
+          kerja sebelum pembayaran, jadi kursi tidak pernah dibayar sebelum dipastikan ada.
+        </p>
+      </div>
+      <div class="mx-auto grid max-w-5xl gap-10 md:grid-cols-2">
+        <ContactInfo heading="Hubungi Kami" />
+        <div class="rounded-xl border border-slate-200 bg-white p-6">
+          <ContactForm client:visible programs={programs} buttonLabel="Kirim Reservasi" />
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

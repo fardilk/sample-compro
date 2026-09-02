@@ -85,7 +85,7 @@ const NextBatch: React.FC<NextBatchProps> = ({
   ];
 
   return (
-    <section className="bg-slate-900 text-white">
+    <section className="border-y border-orange-200 bg-orange-50 text-slate-900">
       <div className="mx-auto flex flex-col gap-6 py-8 lg:flex-row lg:items-center" style={{ width: '90%' }}>
         {image && (
           <img
@@ -98,7 +98,7 @@ const NextBatch: React.FC<NextBatchProps> = ({
         )}
 
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-orange-main">
+          <p className="text-xs font-semibold uppercase tracking-wide text-orange-dark">
             Batch terdekat
           </p>
           <h2 className="mt-1 text-xl font-bold leading-snug md:text-2xl">
@@ -106,7 +106,7 @@ const NextBatch: React.FC<NextBatchProps> = ({
               {title}
             </a>
           </h2>
-          <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/75">
+          <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
             <span className="flex items-center gap-1.5">
               <Icon name="fa-calendar" size={16} color="currentColor" />
               {range}
@@ -129,16 +129,16 @@ const NextBatch: React.FC<NextBatchProps> = ({
 
         <div className="flex items-center gap-4">
           {started ? (
-            <p className="text-sm font-semibold text-orange-main">Sedang berlangsung</p>
+            <p className="text-sm font-semibold text-orange-dark">Sedang berlangsung</p>
           ) : (
             <div className="flex items-stretch">
               {units.map((u, i) => (
                 <div
                   key={u.label}
-                  className={`px-3 text-center sm:px-4 ${i > 0 ? 'border-l border-white/20' : ''}`}
+                  className={`px-3 text-center sm:px-4 ${i > 0 ? 'border-l border-orange-200' : ''}`}
                 >
                   <div className="text-2xl font-bold tabular-nums">{u.value}</div>
-                  <div className="text-[0.625rem] tracking-wide text-white/70">{u.label}</div>
+                  <div className="text-[0.625rem] tracking-wide text-slate-500">{u.label}</div>
                 </div>
               ))}
             </div>

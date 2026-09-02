@@ -47,18 +47,30 @@ const ContactForm: React.FC<ContactFormProps> = ({
   const [showSuccess, setShowSuccess] = React.useState(false);
   const [failed, setFailed] = React.useState(false);
 
-  // Set when the visitor arrived from a programme's Daftar button. Read after
-  // mount so the static HTML stays identical for every query string.
-  const [program, setProgram] = React.useState<string>('');
+  // What the visitor came here to do, taken from the link they followed. Read
+  // after mount so the static HTML stays identical for every query string.
+  const [intent, setIntent] = React.useState<{ label: string; message: string } | null>(null);
 
   React.useEffect(() => {
-    const slug = new URLSearchParams(window.location.search).get('program');
-    if (!slug) return;
-    setProgram(slug);
-    const label = programs[slug] ?? slug;
-    setForm((prev) =>
-      prev.message ? prev : { ...prev, message: `Saya ingin mendaftar program ${label}.` },
-    );
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get('program');
+    const type = params.get('type');
+
+    const next = slug
+      ? {
+          label: `Reservasi: ${programs[slug] ?? slug}`,
+          message: `Saya ingin memesan kursi untuk program ${programs[slug] ?? slug}.`,
+        }
+      : type === 'konsultasi'
+        ? {
+            label: 'Permintaan sesi konsultasi',
+            message: 'Saya ingin menjadwalkan sesi konsultasi 30 menit.',
+          }
+        : null;
+
+    if (!next) return;
+    setIntent(next);
+    setForm((prev) => (prev.message ? prev : { ...prev, message: next.message }));
   }, [programs]);
 
   // Hidden from people, so anything that fills it is automated. The value is
@@ -127,9 +139,9 @@ const ContactForm: React.FC<ContactFormProps> = ({
   return (
     <div className={className}>
       <form className="relative space-y-4" onSubmit={onSubmit} noValidate>
-        {program && (
+        {intent && (
           <div className="rounded-md border border-orange-200 bg-orange-50 px-3 py-2 text-sm text-orange-dark">
-            Pendaftaran: <strong>{programs[program] ?? program}</strong>
+            <strong>{intent.label}</strong>
           </div>
         )}
         <div>

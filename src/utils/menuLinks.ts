@@ -25,6 +25,15 @@ export function menuHref(group: string, item: HoverMenuItem, parent?: HoverMenuI
     return `/about-us#${map[label] ?? label.replace(/[^a-z0-9]+/g, '-')}`;
   }
 
+  if (group === 'Consultation Program') {
+    const map: Record<string, string> = {
+      schedule: '/schedule',
+      reserve: '/schedule#reservasi',
+      'contact us': '/home/contact?type=konsultasi',
+    };
+    return map[item.label.toLowerCase()] ?? item.href ?? '#';
+  }
+
   if (group === 'Resources' && item.label.toLowerCase() === 'blog') {
     return '/blog';
   }

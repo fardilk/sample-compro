@@ -127,6 +127,10 @@ const nextCover = next ? cards.get(`${next.service.category}/${next.service.slug
 
 const totalPrograms = groups.reduce((n, g) => n + g.items.length, 0);
 
+// The catalogue alternates white and slate-50; the closing block takes
+// whichever of the two the last group did not, so no two bands ever meet.
+const contactBg = (groups.length - 1) % 2 === 0 ? 'bg-slate-50' : 'bg-white';
+
 // slug -> title, so a `?program=` link keeps its programme name on the form.
 const programs = Object.fromEntries(services.map((s) => [s.slug, s.title]));
 ---
@@ -156,10 +160,10 @@ const programs = Object.fromEntries(services.map((s) => [s.slug, s.title]));
           Lihat Semua Program
         </a>
         <a
-          href="/home/contact"
+          href="/schedule"
           class="rounded-lg border border-white/25 px-6 py-3 font-semibold text-white hover:bg-white/10"
         >
-          Konsultasi Gratis
+          Jadwal &amp; Reservasi
         </a>
       </div>
     </div>
@@ -185,7 +189,7 @@ const programs = Object.fromEntries(services.map((s) => [s.slug, s.title]));
 
   <ProgramCatalog groups={groups} />
 
-  <section class="bg-white py-14" id="contact">
+  <section class={`${contactBg} py-14`} id="contact">
     <div class="mx-auto" style="width: 90%">
       <div class="mb-10 max-w-2xl">
         <h2 class="text-2xl font-bold md:text-3xl">Daftar atau tanya dulu</h2>
@@ -196,7 +200,7 @@ const programs = Object.fromEntries(services.map((s) => [s.slug, s.title]));
       </div>
       <div class="mx-auto grid max-w-5xl gap-10 md:grid-cols-2">
         <ContactInfo heading="Hubungi Kami" />
-        <div class="rounded-xl border border-slate-200 p-6">
+        <div class="rounded-xl border border-slate-200 bg-white p-6">
           <ContactForm client:visible programs={programs} />
         </div>
       </div>

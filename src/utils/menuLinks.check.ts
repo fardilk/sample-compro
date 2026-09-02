@@ -15,7 +15,7 @@ import { menuHref, isPlaceholder } from './menuLinks';
 const dist = join(process.cwd(), 'dist');
 
 const resolves = (href: string): boolean => {
-  const path = href.split('#')[0].replace(/\/$/, '');
+  const path = href.split(/[?#]/)[0].replace(/\/$/, '');
   // A fragment-only href has no page behind it; isPlaceholder filters those out
   // before this runs, so reaching here with an empty path is a bug in the walk.
   if (path === '') return false;
