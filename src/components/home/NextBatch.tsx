@@ -4,6 +4,7 @@ import Icon from '../global/Icon';
 export type NextBatchProps = {
   title: string;
   href: string;
+  slug: string;
   startsAt: string;
   endsAt?: string | null;
   city?: string;
@@ -48,6 +49,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 const NextBatch: React.FC<NextBatchProps> = ({
   title,
   href,
+  slug,
   startsAt,
   endsAt,
   city,
@@ -72,6 +74,10 @@ const NextBatch: React.FC<NextBatchProps> = ({
   }, [startsAt]);
 
   const started = mounted && time.days === 0 && time.hours === 0 && time.mins === 0;
+
+  // Registration has a page of its own; the programme page is where "Daftar"
+  // used to land, which left the visitor to hunt for the form again.
+  const registrationHref = `/registration?program=${slug}`;
 
   const range =
     endsAt && new Date(endsAt).toDateString() !== new Date(startsAt).toDateString()
@@ -145,7 +151,7 @@ const NextBatch: React.FC<NextBatchProps> = ({
           )}
 
           <a
-            href={registerUrl || href}
+            href={registerUrl || registrationHref}
             className="shrink-0 rounded-lg bg-orange-main px-5 py-2.5 font-semibold text-white hover:bg-orange-dark"
           >
             Daftar

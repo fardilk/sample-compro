@@ -28,7 +28,7 @@ export function menuHref(group: string, item: HoverMenuItem, parent?: HoverMenuI
   if (group === 'Consultation Program') {
     const map: Record<string, string> = {
       schedule: '/schedule',
-      reserve: '/schedule#reservasi',
+      reserve: '/registration',
       'contact us': '/home/contact?type=konsultasi',
     };
     return map[item.label.toLowerCase()] ?? item.href ?? '#';

@@ -71,7 +71,7 @@ const programs = Object.fromEntries(services.map((s) => [s.slug, s.title]));
       </p>
       <div class="mt-7 flex flex-wrap gap-3">
         <a
-          href="#reservasi"
+          href="/registration"
           class="rounded-lg bg-orange-main px-6 py-3 font-semibold text-white hover:bg-orange-dark"
         >
           Reservasi Kursi
@@ -150,7 +150,7 @@ const programs = Object.fromEntries(services.map((s) => [s.slug, s.title]));
                       <span class="font-semibold text-slate-900">{priceOf(schedule.price)}</span>
                     )}
                     <a
-                      href={`/home/contact?program=${service.slug}`}
+                      href={`/registration?program=${service.slug}`}
                       class="rounded-lg bg-orange-main px-5 py-2.5 font-semibold text-white hover:bg-orange-dark"
                     >
                       Reservasi
@@ -168,16 +168,16 @@ const programs = Object.fromEntries(services.map((s) => [s.slug, s.title]));
   <section class="bg-slate-50 py-14" id="reservasi">
     <div class="mx-auto" style="width: 90%">
       <div class="mb-10 max-w-2xl">
-        <h2 class="text-2xl font-bold md:text-3xl">Reservasi kursi atau sesi konsultasi</h2>
+        <h2 class="text-2xl font-bold md:text-3xl">Tanya dulu sebelum mendaftar</h2>
         <p class="mt-2 text-slate-600">
-          Sebutkan program dan jumlah peserta. Kami konfirmasi ketersediaan kuota dalam 1x24 jam
-          kerja sebelum pembayaran, jadi kursi tidak pernah dibayar sebelum dipastikan ada.
+          Belum yakin program mana yang cocok, atau perlu penawaran in-house? Tulis di sini.
+          Untuk mengunci kursi, pakai <a class="font-semibold text-orange-main hover:text-orange-dark" href="/registration">formulir pendaftaran</a>.
         </p>
       </div>
       <div class="mx-auto grid max-w-5xl gap-10 md:grid-cols-2">
         <ContactInfo heading="Hubungi Kami" />
         <div class="rounded-xl border border-slate-200 bg-white p-6">
-          <ContactForm client:visible programs={programs} buttonLabel="Kirim Reservasi" />
+          <ContactForm client:visible programs={programs} />
         </div>
       </div>
     </div>

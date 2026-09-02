@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Icon from '../../components/global/Icon';
+---
+
+<BaseLayout
+  title="Terima Kasih"
+  description="Pendaftaran Anda sudah kami terima. Tim Excellence Plus Indonesia akan menghubungi Anda."
+  noindex
+>
+  <section class="bg-white py-20">
+    <div class="mx-auto max-w-2xl text-center" style="width: 90%">
+      <div
+        class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-orange-200 bg-orange-50"
+      >
+        <Icon name="fa-check" size={30} className="text-orange-main" />
+      </div>
+
+      <h1 class="mt-6 text-3xl font-extrabold md:text-4xl">Terima kasih</h1>
+      <p class="mt-4 text-lg text-slate-600">
+        Pendaftaran Anda sudah kami terima. Tim kami akan menghubungi Anda untuk konfirmasi kuota
+        dan langkah berikutnya, dalam 1x24 jam kerja.
+      </p>
+      <p class="mt-3 text-slate-600">
+        Kalau butuh lebih cepat, hubungi kami di{' '}
+        <a class="font-semibold text-orange-main hover:text-orange-dark" href="https://wa.me/6281292934488">
+          0812 9293 4488
+        </a>.
+      </p>
+
+      <div class="mt-8 flex flex-wrap justify-center gap-3">
+        <a
+          href="/"
+          class="rounded-lg bg-orange-main px-6 py-3 font-semibold text-white hover:bg-orange-dark"
+        >
+          Kembali ke Beranda
+        </a>
+        <a
+          href="/schedule"
+          class="rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-800 hover:bg-slate-50"
+        >
+          Lihat Jadwal Lain
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

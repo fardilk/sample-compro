@@ -175,6 +175,7 @@ const programs = Object.fromEntries(services.map((s) => [s.slug, s.title]));
         client:visible
         title={next.service.title}
         href={`/services/${next.service.category}/${next.service.slug}`}
+        slug={next.service.slug}
         startsAt={next.schedule.starts_at!}
         endsAt={next.schedule.ends_at}
         city={next.schedule.city}
