@@ -3,7 +3,7 @@ import type { BannerProps } from '../types';
 
 const Banner: React.FC<BannerProps> = ({ 
   title = "Excellence Plus Indonesia",
-  subtitle = "Transforming ideas into exceptional digital experiences. We deliver innovative solutions that drive your business forward.",
+  subtitle = "Training, coaching, dan konsultansi untuk perusahaan yang ingin timnya bekerja lebih baik — bukan sekadar lebih sibuk. Dibawakan praktisi bersertifikasi BNSP, dengan studi kasus dari industri Anda sendiri.",
   className = '' 
 }) => {
   return (
@@ -23,11 +23,11 @@ const Banner: React.FC<BannerProps> = ({
             {subtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/services" className="bg-orange-main text-white px-8 py-3 rounded-lg font-semibold hover:shadow-md transition-colors">
-              Get Started
+            <a href="/home/contact" className="bg-orange-main text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-dark transition-colors">
+              Konsultasi Gratis
             </a>
-            <a href="#services" className="bg-white text-gray-800 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-              Learn More
+            <a href="/services" className="bg-white text-gray-800 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+              Lihat Program
             </a>
           </div>
         </div>

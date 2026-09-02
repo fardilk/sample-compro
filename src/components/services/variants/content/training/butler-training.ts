@@ -4,7 +4,9 @@ const butler: VariantContent = {
   hero: {
     eyebrow: 'Training • Excellence Plus Indonesia',
     title: 'Butler Training',
-    subtitle: 'Precision, etiquette, and exceptional service.'
+    subtitle: 'Precision, etiquette, and exceptional service.',
+    // Documentation from the 2025 programme at The Langham, Jakarta.
+    imageSrc: '/img/butler-training-langham.jpg'
   },
   features: {
     items: [
