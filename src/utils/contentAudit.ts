@@ -10,9 +10,11 @@ import { trainingPrograms } from '../data/trainingPrograms';
 const API = process.env.CMS_API_URL ?? 'https://excellenceplus.id/admin-api';
 
 /** Wording that belongs to a cloud-migration deck, not to this business. */
+// "pipeline" is deliberately absent: a sales pipeline is the right word in a
+// sales programme, and matching on it flagged a page that was fine.
 const FOREIGN = [
   'landing zone', 'migration wave', 'mttr', 'deployments/week', 'kubernetes',
-  'ci/cd', 'devops', 'pipeline', 'observability', 'sre', 'latency',
+  'ci/cd', 'devops', 'observability', 'sre', 'infra cost', 'uptime',
 ];
 
 type Verdict = 'siap' | 'perlu ditinjau' | 'belum siap';
