@@ -4,6 +4,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+ARG CMS_API_URL=https://excellenceplus.id/admin-api
+ENV CMS_API_URL=$CMS_API_URL
 RUN npm run build
 
 # Stage 2: Serve with Nginx

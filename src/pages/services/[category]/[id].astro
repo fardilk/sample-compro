@@ -1,43 +1,113 @@
 ---
+import { getImage } from 'astro:assets';
+
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import TrainingService from '../../../components/services/TrainingService';
 import ServiceDetail from '../../../components/services/ServiceDetail';
+import CmsService from '../../../components/services/CmsService';
 import { serviceRoutes } from '../../../data/serviceRoutes';
 import { trainingPrograms } from '../../../data/trainingPrograms';
+import { getServices, mediaURL, hasContent } from '../../../lib/cms';
+import type { CmsService as CmsServiceType } from '../../../lib/cms';
 
-export function getStaticPaths() {
-  return serviceRoutes.map((r) => ({
+export async function getStaticPaths() {
+  const cms = await getServices();
+  const byPath = new Map(cms.map((s) => [`${s.category}/${s.slug}`, s]));
+
+  // Routes still come from the navigation tree, so a page the menu links to
+  // cannot disappear just because it has not been moved into the CMS yet. A CMS
+  // entry for the same path takes over; the rest keep their in-repo content.
+  const fromMenu = serviceRoutes.map((r) => ({
     params: { category: r.categorySlug, id: r.idSlug },
-    props: r,
+    props: { ...r, cms: byPath.get(`${r.categorySlug}/${r.idSlug}`) ?? null },
   }));
+
+  const known = new Set(serviceRoutes.map((r) => `${r.categorySlug}/${r.idSlug}`));
+  const cmsOnly = cms
+    .filter((s) => !known.has(`${s.category}/${s.slug}`))
+    .map((s) => ({
+      params: { category: s.category, id: s.slug },
+      props: {
+        categorySlug: s.category,
+        categoryLabel: s.category_label,
+        idSlug: s.slug,
+        title: s.title,
+        description: s.subtitle,
+        cms: s,
+      },
+    }));
+
+  return [...fromMenu, ...cmsOnly];
 }
 
 const { categorySlug, categoryLabel, idSlug, title, description } = Astro.props;
+const cms = Astro.props.cms as CmsServiceType | null;
 
-// Training programs carry authored content and their own related-program grids.
+/**
+ * Pull every CMS image into the build output. Left as API URLs, the published
+ * pages would still depend on the backend being up for their images, which
+ * defeats the point of building a static snapshot.
+ */
+async function localise(path: string, width: number, height: number) {
+  const src = mediaURL(path);
+  if (!src) return undefined;
+  try {
+    const image = await getImage({ src, width, height, format: 'webp' });
+    return image.src;
+  } catch {
+    // A missing or unreadable upload should not take the whole build down.
+    return undefined;
+  }
+}
+
+const heroImage = cms ? await localise(cms.hero_image, 800, 600) : undefined;
+const ogImage = cms ? await localise(cms.og_image, 1200, 630) : undefined;
+
+const cmsResolved: CmsServiceType | null = cms
+  ? {
+      ...cms,
+      proofs: await Promise.all(
+        cms.proofs.map(async (p) => ({ ...p, image: (await localise(p.image, 160, 160)) ?? '' })),
+      ),
+    }
+  : null;
+
+// Training programs still carry their authored in-repo content.
 const program = categorySlug === 'training'
   ? trainingPrograms.find((p) => p.slug === idSlug)
   : undefined;
 
-const heroImage = program?.content.hero?.imageSrc ?? '/img/og-default.jpg';
+const pageTitle = cms?.meta_title || cms?.title || `${title} — ${categoryLabel}`;
+const pageDescription =
+  cms?.meta_description || cms?.subtitle || description;
+const shareImage = ogImage ?? heroImage ?? program?.content.hero?.imageSrc ?? '/img/og-default.jpg';
+
+// A CMS entry only takes over once it has something to show; an empty draft
+// promoted by mistake should not blank a page that already had content.
+const useCms = cmsResolved !== null && hasContent(cmsResolved);
 ---
 
-<BaseLayout title={`${title} — ${categoryLabel}`} description={description} image={heroImage}>
+<BaseLayout title={pageTitle} description={pageDescription} image={shareImage}>
   <nav aria-label="Breadcrumb" class="bg-slate-900 text-white pt-10 pb-4">
     <div class="mx-auto text-sm" style="width: 90%">
       <a href="/services" class="text-slate-300 hover:text-white underline">Services</a>
       <span class="mx-2 text-slate-500">/</span>
       <span class="text-slate-300">{categoryLabel}</span>
       <span class="mx-2 text-slate-500">/</span>
-      <span class="text-white font-medium">{title}</span>
+      <span class="text-white font-medium">{cms?.title ?? title}</span>
     </div>
   </nav>
 
-  {/* Tabs and accordions inside the variants need state, so these hydrate.
-      ponytail: whole-subtree island; split per section only if the JS shows up in a budget. */}
   {
-    program
-      ? <TrainingService client:visible title={program.title} subtitle={program.subtitle} overrideContent={program.content} />
-      : <ServiceDetail client:visible categoryLabel={categoryLabel} title={title} description={description} />
+    useCms ? (
+      // Every section is static, so a CMS-backed page ships no JavaScript.
+      <CmsService service={cmsResolved!} heroImage={heroImage} />
+    ) : program ? (
+      /* Tabs and accordions inside the variant need state, so the block hydrates.
+         ponytail: whole-subtree island; split per section only if the JS shows up in a budget. */
+      <TrainingService client:visible title={program.title} subtitle={program.subtitle} overrideContent={program.content} />
+    ) : (
+      <ServiceDetail client:visible categoryLabel={categoryLabel} title={title} description={description} />
+    )
   }
 </BaseLayout>

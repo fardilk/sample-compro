@@ -15,5 +15,11 @@ export default defineConfig({
   build: { format: 'file' },
   trailingSlash: 'never',
   integrations: [react(), sitemap()],
+  image: {
+    // The CMS serves uploads from this host. Allowing it lets Astro download
+    // and optimise them at build time, so the published pages carry local
+    // copies instead of pointing back at the API.
+    domains: ['excellenceplus.id'],
+  },
   vite: { plugins: [tailwindcss()] },
 });
