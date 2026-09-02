@@ -1,6 +1,7 @@
 import React from 'react';
 import type { HoverMenuItem } from '../../utils/hoverMenu';
 import { serviceHref } from '../../utils/serviceLinks';
+import { isPlaceholder } from '../../utils/menuLinks';
 
 interface HoverMenu2Props {
   items: HoverMenuItem[];
@@ -20,24 +21,32 @@ const HoverMenu2: React.FC<HoverMenu2Props> = ({ items, className, linkBuilder, 
         const topTo = linkBuilder
           ? linkBuilder(item, parent)
           : serviceHref(parent ? parent.label : item.label, parent ? item.label : undefined);
+        // Entries with no destination are rendered as inert cards rather than
+        // links that go nowhere, matching how the mobile drawer treats them.
+        const dead = isPlaceholder(topTo);
+        const TopTag = (dead ? 'div' : 'a') as 'div' | 'a';
         return (
           <React.Fragment key={item.label}>
-            <a
-              href={topTo}
-              onClick={onNavigate}
-              className="relative flex items-start bg-white border border-gray-200 rounded-lg shadow-md px-6 py-5 hover:shadow-xl transition-shadow duration-200 group cursor-pointer"
+            <TopTag
+              {...(dead ? {} : { href: topTo, onClick: onNavigate })}
+              className={`relative flex items-start bg-white border border-gray-200 rounded-lg shadow-md px-6 py-5 transition-shadow duration-200 group ${
+                dead ? 'opacity-60' : 'hover:shadow-xl cursor-pointer'
+              }`}
             >
               <div className="flex items-center justify-center w-14 h-14 rounded-md bg-gradient-to-r from-blue-100 to-blue-50 mr-5">
                 <i className={`fa ${item.icon} text-2xl text-blue-600`} aria-hidden="true"></i>
               </div>
               <div className="flex-1 flex flex-col justify-start">
-                <span className="font-bold text-base mb-1 truncate" style={{ maxWidth: '16em' }}>{item.label.slice(0, 30)}</span>
+                <span className="font-bold text-base mb-1 truncate" style={{ maxWidth: '16em' }}>
+                  {item.label.slice(0, 30)}
+                  {dead && <span className="ml-2 text-xs font-normal text-gray-400">(segera)</span>}
+                </span>
                 <span className="text-gray-600 text-sm" style={{ maxWidth: '22em' }}>{item.description?.slice(0, 60)}</span>
               </div>
               <span className="ml-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 <i className="fa fa-chevron-right text-xl text-blue-600" aria-hidden="true"></i>
               </span>
-            </a>
+            </TopTag>
             {/* Render children as cards if present */}
             {item.children && item.children.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">

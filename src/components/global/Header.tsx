@@ -4,12 +4,14 @@ import Button from './Button';
 import { mainMenu } from '../../utils/hoverMenu';
 import type { HoverMenuItem } from '../../utils/hoverMenu';
 import HoverMenu2 from './HoverMenu2';
-import { serviceHref } from '../../utils/serviceLinks';
+import { menuHref } from '../../utils/menuLinks';
+import MobileNav from './MobileNav';
 
 const Header: React.FC<HeaderProps> = ({ className = '' }) => {
   const [openMenuIdx, setOpenMenuIdx] = React.useState<number | null>(null);
   const [activeSubIdx, setActiveSubIdx] = React.useState<number | null>(null);
   const [showConsultBanner, setShowConsultBanner] = React.useState(true);
+  const [mobileOpen, setMobileOpen] = React.useState(false);
 
   // Handler for menu click
   const handleMenuClick = (idx: number) => {
@@ -22,30 +24,9 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
     }
   };
 
-  const buildServiceLink = (item: HoverMenuItem, parent?: HoverMenuItem): string =>
-    serviceHref(parent ? parent.label : item.label, parent ? item.label : undefined);
-
-  const buildWhoWeAreLink = (item: HoverMenuItem): string => {
-    const label = item.label.toLowerCase();
-    const map: Record<string, string> = {
-      'vision & mission': 'vision-mission',
-      'our team': 'our-team',
-      'history': 'history',
-      'values': 'values',
-    };
-    const toId = map[label] ?? label.replace(/[^a-z0-9]+/g, '-');
-    return `/about-us#${toId}`;
-  };
-
-  const buildResourcesLink = (item: HoverMenuItem): string => {
-    const label = item.label.toLowerCase();
-    if (label === 'blog') return '/blog';
-    // Fallback to provided href (can be external) or '#'
-    return item.href ?? '#';
-  };
-
   return (
     <>
+      <MobileNav open={mobileOpen} onClose={() => setMobileOpen(false)} />
       <header className={`bg-white shadow-lg sticky top-0 z-50 transition-shadow duration-200 ${className}`}
         onMouseEnter={e => e.currentTarget.classList.add('shadow-2xl')}
         onMouseLeave={e => e.currentTarget.classList.remove('shadow-2xl')}
@@ -88,7 +69,11 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
               <div className="md:hidden ml-2">
                 <button
                   type="button"
-                  className="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
+                  onClick={() => setMobileOpen(true)}
+                  aria-label="Buka menu"
+                  aria-expanded={mobileOpen}
+                  aria-haspopup="dialog"
+                  className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-main cursor-pointer"
                 >
                   <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -130,19 +115,13 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
                     <HoverMenu2
                       items={mainMenu[openMenuIdx].children!}
                       className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 py-4"
-                      linkBuilder={(item) => (
-                        mainMenu[openMenuIdx]?.label === 'Who We Are'
-                          ? buildWhoWeAreLink(item)
-                          : mainMenu[openMenuIdx]?.label === 'Resources'
-                            ? buildResourcesLink(item)
-                            : (item.href ?? '#')
-                      )}
+                      linkBuilder={(item) => menuHref(mainMenu[openMenuIdx].label, item)}
                     />
                   </div>
                 </div>
               )
             : (
-                <div className="fixed left-0 top-16 w-full h-[calc(100vh-4rem)] bg-white z-50 shadow-lg flex">
+                <div className="fixed left-0 top-[6rem] w-full h-[calc(100vh-6rem)] bg-white z-50 shadow-lg flex">
                   {/* Submenu on left */}
                   <div className="w-1/4 h-full border-r border-gray-200 flex flex-col items-start p-8 bg-gray-50">
                     <div className="flex items-center mb-6">
@@ -168,7 +147,7 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
                       <HoverMenu2
                         items={mainMenu[openMenuIdx].children[activeSubIdx].children!}
                         parent={mainMenu[openMenuIdx].children[activeSubIdx]}
-                        linkBuilder={(item, parent) => buildServiceLink(item, parent)}
+                        linkBuilder={(item, parent) => menuHref(mainMenu[openMenuIdx].label, item, parent)}
                         onNavigate={() => { setOpenMenuIdx(null); setActiveSubIdx(null); }}
                       />
                     )}
@@ -179,7 +158,7 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
                         <HoverMenu2
                           items={[mainMenu[openMenuIdx].children![activeSubIdx]]}
                           parent={mainMenu[openMenuIdx].children![activeSubIdx]}
-                          linkBuilder={(item, parent) => buildServiceLink(item, parent)}
+                          linkBuilder={(item, parent) => menuHref(mainMenu[openMenuIdx].label, item, parent)}
                           onNavigate={() => { setOpenMenuIdx(null); setActiveSubIdx(null); }}
                         />
                     )}
