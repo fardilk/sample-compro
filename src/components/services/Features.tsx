@@ -1,6 +1,7 @@
 import React from 'react';
 
 import type { FeatureItem } from './types';
+import Icon from '../global/Icon';
 interface FeaturesProps { items: FeatureItem[]; columns?: 2 | 3 | 4; }
 
 const Features: React.FC<FeaturesProps> = ({ items, columns = 3 }) => {
@@ -13,7 +14,7 @@ const Features: React.FC<FeaturesProps> = ({ items, columns = 3 }) => {
             <div key={i} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-10 h-10 rounded-md bg-blue-50 flex items-center justify-center">
-                  <i className={`fa ${f.icon ?? 'fa-check'} text-blue-600`} aria-hidden="true"></i>
+                  <Icon name={f.icon ?? 'fa-check'} className="text-orange-main" />
                 </div>
                 <div className="font-semibold">{f.title}</div>
               </div>

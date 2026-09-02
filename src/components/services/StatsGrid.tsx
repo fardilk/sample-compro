@@ -1,5 +1,6 @@
 import React from 'react';
 import type { StatsGridContent } from './types';
+import Icon from '../global/Icon';
 
 const StatsGrid: React.FC<StatsGridContent> = ({ items, columns = 4, title, subtitle }) => {
   const cols = columns === 3 ? 'md:grid-cols-3' : columns === 2 ? 'md:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-4';
@@ -17,7 +18,7 @@ const StatsGrid: React.FC<StatsGridContent> = ({ items, columns = 4, title, subt
             <div key={i} className="bg-slate-900 text-white rounded-xl p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-10 h-10 rounded-md bg-slate-700/50 flex items-center justify-center">
-                  <i className={`fa ${s.icon ?? 'fa-bolt'} text-yellow-400`} aria-hidden="true"></i>
+                  <Icon name={s.icon ?? 'fa-bolt'} className="text-yellow-400" />
                 </div>
                 <div className="text-2xl font-extrabold">{s.value}</div>
               </div>

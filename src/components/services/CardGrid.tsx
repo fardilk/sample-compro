@@ -1,5 +1,6 @@
 import React from 'react';
 import type { CardGridContent } from './types';
+import Icon from '../global/Icon';
 
 const CardGrid: React.FC<CardGridContent> = ({ items, columns = 3, title, subtitle }) => {
   const cols = columns === 4 ? 'lg:grid-cols-4' : columns === 2 ? 'md:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-3';
@@ -18,7 +19,7 @@ const CardGrid: React.FC<CardGridContent> = ({ items, columns = 3, title, subtit
               {c.image && <img src={c.image} alt={c.title} className="w-full h-40 object-cover rounded-md mb-3" />}
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-10 h-10 rounded-md bg-blue-50 flex items-center justify-center">
-                  <i className={`fa ${c.icon ?? 'fa-star'} text-blue-600`} aria-hidden="true"></i>
+                  <Icon name={c.icon ?? 'fa-star'} className="text-blue-600" />
                 </div>
                 <div className="font-semibold">{c.title}</div>
               </div>

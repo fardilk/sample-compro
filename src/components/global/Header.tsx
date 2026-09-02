@@ -6,6 +6,7 @@ import type { HoverMenuItem } from '../../utils/hoverMenu';
 import HoverMenu2 from './HoverMenu2';
 import { menuHref } from '../../utils/menuLinks';
 import MobileNav from './MobileNav';
+import Icon from './Icon';
 
 const Header: React.FC<HeaderProps> = ({ className = '' }) => {
   const [openMenuIdx, setOpenMenuIdx] = React.useState<number | null>(null);
@@ -51,7 +52,7 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
                     >
                       {item.label}
                       <span className="ml-2 transition-transform">
-                        <i className={`fa ${openMenuIdx === idx ? 'fa-chevron-up' : 'fa-chevron-down'}`} aria-hidden="true"></i>
+                        <Icon name={openMenuIdx === idx ? 'fa-chevron-up' : 'fa-chevron-down'} />
                       </span>
                     </button>
                   ))}
@@ -125,7 +126,7 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
                   {/* Submenu on left */}
                   <div className="w-1/4 h-full border-r border-gray-200 flex flex-col items-start p-8 bg-gray-50">
                     <div className="flex items-center mb-6">
-                      <i className="fa fa-bars mr-3 text-xl" aria-hidden="true"></i>
+                      <Icon name="fa-bars" className="mr-3" />
                       <span className="font-bold text-lg">{mainMenu[openMenuIdx].label}</span>
                     </div>
                     {mainMenu[openMenuIdx].children?.map((sub, subIdx) => (
@@ -135,7 +136,7 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
                         className={`flex items-center px-4 py-2 w-full text-gray-800 hover:text-blue-600 cursor-pointer rounded-md ${activeSubIdx === subIdx ? 'bg-orange-100 font-semibold' : ''}`}
                         onClick={() => setActiveSubIdx(subIdx)}
                       >
-                        <i className="fa fa-chevron-right mr-2" aria-hidden="true"></i>
+                        <Icon name="fa-chevron-right" className="mr-2" />
                         {sub.label}
                       </a>
                     ))}

@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '../global/Icon';
 
 export type SuccessModalProps = {
   open: boolean;
@@ -32,7 +33,7 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
       <div className="relative bg-white rounded-lg shadow-2xl w-[90%] max-w-md mx-auto p-6 animate-[fadeIn_0.15s_ease-in]">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-600">
-            <i className="fa fa-check" aria-hidden="true" />
+            <Icon name="fa-check" />
           </div>
           <div className="flex-1">
             <h3 id="success-modal-title" className="text-lg font-semibold text-gray-900">

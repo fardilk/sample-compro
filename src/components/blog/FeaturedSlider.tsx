@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '../global/Icon';
 
 export type FeaturedItem = {
   slug: string;
@@ -60,7 +61,7 @@ const FeaturedSlider: React.FC<{ items: FeaturedItem[] }> = ({ items }) => {
             />
           ) : (
             <div className="flex h-64 w-full items-center justify-center rounded-lg bg-slate-100 text-slate-300 sm:h-full sm:rounded-none">
-              <i className="fa fa-newspaper text-3xl" aria-hidden="true" />
+              <Icon name="fa-newspaper" size={30} />
             </div>
           )}
         </div>

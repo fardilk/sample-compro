@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '../global/Icon';
 
 type ValueItem = {
   title: string;
@@ -31,7 +32,7 @@ const OurValues: React.FC<OurValuesProps> = ({ id = 'values', items = defaultIte
             <div key={v.title} className={`rounded-lg p-5 ${v.bg} ${i % 2 === 0 ? 'shadow-sm' : 'shadow-md'}`}>
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-12 h-12 flex items-center justify-center rounded-md ${v.bg}`}>
-                  <i className={`${v.icon} ${v.textColor}`} aria-hidden="true"></i>
+                  <Icon name={v.icon} className={v.textColor} />
                 </div>
                 <div className="font-semibold text-lg">{v.title}</div>
               </div>

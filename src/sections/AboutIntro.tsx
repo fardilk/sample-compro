@@ -1,5 +1,6 @@
 import React from 'react';
 import { H1, H2, H3, P, Lead } from '../utils/typography';
+import Icon from '../components/global/Icon';
 
 const AboutIntro: React.FC = () => {
 	return (
@@ -49,12 +50,12 @@ const AboutIntro: React.FC = () => {
 				<div className="mx-auto space-y-8" style={{ width: '90%' }}>
 					<div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
 						<div className="flex items-center gap-3">
-							<span className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-blue-50"><i className="fa fa-eye text-blue-600" aria-hidden="true"></i></span>
+							<span className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-blue-50"><Icon name="fa-eye" className="text-blue-600" /></span>
 							<H2 className="m-0">Vision</H2>
 						</div>
 						<div className="mt-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 p-5">
 							<div className="flex items-start gap-3">
-								<i className="fa fa-quote-left text-blue-500 mt-1" aria-hidden="true"></i>
+								<Icon name="fa-quote-left" className="text-blue-500 mt-1" />
 								<Lead className="text-slate-800">A leading, trusted, and preferred business partner in achieving organisational goals</Lead>
 							</div>
 						</div>
@@ -62,7 +63,7 @@ const AboutIntro: React.FC = () => {
 
 					<div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
 						<div className="flex items-center gap-3 mb-3">
-							<span className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-amber-50"><i className="fa fa-bullseye text-amber-600" aria-hidden="true"></i></span>
+							<span className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-amber-50"><Icon name="fa-bullseye" className="text-amber-600" /></span>
 							<H2 className="m-0">Mission</H2>
 						</div>
 						<p className="text-slate-700 mb-4">Our mission is to exceed expectations in providing excellent service, unexpected quality and outstanding value, for our client partners and employees.</p>

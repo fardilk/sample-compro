@@ -1,5 +1,6 @@
 import React from 'react';
 import type { FooterProps } from '../types';
+import Icon from './Icon';
 
 const Footer: React.FC<FooterProps> = ({ className = '' }) => {
   return (
@@ -22,10 +23,10 @@ const Footer: React.FC<FooterProps> = ({ className = '' }) => {
                 aria-label="WhatsApp"
                 className="text-gray-300 hover:text-white"
               >
-                <i className="fa fa-comments text-xl" aria-hidden="true" />
+                <Icon name="fa-comments" />
               </a>
               <a href="mailto:training@excellenceplus.id" aria-label="Email" className="text-gray-300 hover:text-white">
-                <i className="fa fa-envelope text-xl" aria-hidden="true" />
+                <Icon name="fa-envelope" />
               </a>
             </div>
           </div>

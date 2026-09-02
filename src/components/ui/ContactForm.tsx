@@ -1,5 +1,6 @@
 import React from 'react';
 import SuccessModal from './SuccessModal';
+import Icon from '../global/Icon';
 
 export type ContactFormValues = {
   name: string;
@@ -219,7 +220,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
               rel="noopener noreferrer"
               className="mt-2 inline-flex items-center gap-2 rounded-md bg-green-600 px-3 py-2 font-semibold text-white hover:bg-green-700"
             >
-              <i className="fa fa-comments" aria-hidden="true" />
+              <Icon name="fa-comments" />
               Chat WhatsApp
             </a>
           </div>

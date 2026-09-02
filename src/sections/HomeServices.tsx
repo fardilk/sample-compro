@@ -2,6 +2,7 @@ import React from 'react';
 import { H2, P } from '../utils/typography';
 import { mainMenu } from '../utils/hoverMenu';
 import { categorySlug, serviceHref } from '../utils/serviceLinks';
+import Icon from '../components/global/Icon';
 
 const HomeServices: React.FC = () => (
       <section className="services-section bg-gray-50" id="services">
@@ -21,7 +22,7 @@ const HomeServices: React.FC = () => (
               return (
                 <div key={cat.label} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                   <div className="text-blue-600 mb-4">
-                    <i className={`fa ${cat.icon ?? 'fa-briefcase'} text-3xl`} aria-hidden="true"></i>
+                    <Icon name={cat.icon ?? 'fa-briefcase'} size={30} className="text-orange-main" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">{cat.label}</h3>
                   <p className="text-gray-600">{(cat.description ?? '').slice(0, 120) || `Explore ${cat.label} offerings tailored to your goals.`}</p>

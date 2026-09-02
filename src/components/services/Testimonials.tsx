@@ -1,6 +1,7 @@
 import React from 'react';
 
 import type { TestimonialItem } from './types';
+import Icon from '../global/Icon';
 interface TestimonialsProps { items: TestimonialItem[]; }
 
 const Testimonials: React.FC<TestimonialsProps> = ({ items }) => {
@@ -10,7 +11,7 @@ const Testimonials: React.FC<TestimonialsProps> = ({ items }) => {
         <div className="grid md:grid-cols-2 gap-6">
           {items.map((t, i) => (
             <div key={i} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-              <i className="fa fa-quote-left text-amber-500" aria-hidden="true"></i>
+              <Icon name="fa-quote-left" className="text-amber-500" />
               <p className="text-slate-800 my-3">{t.text}</p>
               <div className="text-sm text-slate-600">{t.name}{t.role ? `, ${t.role}` : ''}</div>
             </div>

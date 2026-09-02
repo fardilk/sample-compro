@@ -2,6 +2,7 @@ import React from 'react';
 import { mainMenu } from '../utils/hoverMenu';
 import type { HoverMenuItem } from '../utils/hoverMenu';
 import { categorySlug, serviceHref } from '../utils/serviceLinks';
+import Icon from '../components/global/Icon';
 
 
 const getServicesRoot = (): HoverMenuItem | undefined =>
@@ -52,7 +53,7 @@ const ServicesCatalog: React.FC = () => {
               return (
                 <div key={cat.label} className="bg-white border border-slate-200 rounded-lg shadow-sm p-5 hover:shadow-md transition-shadow flex flex-col">
                   <div className={`w-14 h-14 rounded-md bg-gradient-to-r ${palette.from} ${palette.to} flex items-center justify-center mb-4`}>
-                    <i className={`fa ${cat.icon ?? 'fa-briefcase'} ${palette.text} text-2xl`} aria-hidden="true"></i>
+                    <Icon name={cat.icon ?? 'fa-briefcase'} size={24} className={palette.text} />
                   </div>
                   <h3 className="font-semibold text-lg mb-1">{cat.label}</h3>
                   <p className="text-slate-600 text-sm flex-1">{description}</p>

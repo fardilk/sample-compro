@@ -96,13 +96,3 @@
     background: linear-gradient(90deg, var(--color-brand-500), var(--color-brand-300));
   }
 }
-
-/* The markup uses Font Awesome v4 syntax (`fa fa-user`). Mapping `.fa` onto the
-   solid family here replaces v4-font-face.min.css, which would otherwise pull
-   the brands and regular webfonts (~120 KB) that this site never uses. */
-.fa {
-  font-family: "Font Awesome 7 Free";
-  font-weight: 900;
-  --fa-style: 900;
-  --fa-family: var(--fa-family-classic);
-}

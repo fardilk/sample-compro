@@ -63,6 +63,7 @@ for (const a of articles) {
     byCategory.set(c.name, list);
   }
 }
+import Icon from '../components/global/Icon';
 ---
 
 <BaseLayout
@@ -82,7 +83,7 @@ for (const a of articles) {
     articles.length === 0 ? (
       <section class="bg-white py-20">
         <div class="mx-auto text-center" style="width: 90%">
-          <i class="fa fa-feather-pointed mb-4 text-4xl text-slate-300" aria-hidden="true" />
+          <Icon name="fa-feather-pointed" size={36} class:list={["mb-4 text-slate-300"]} />
           <h2 class="text-xl font-bold text-slate-900">Tulisan pertama sedang disiapkan</h2>
           <p class="mx-auto mt-2 max-w-md text-slate-600">
             Sementara itu, lihat program dan layanan kami, atau hubungi tim untuk bicara langsung.
@@ -125,7 +126,7 @@ for (const a of articles) {
                     />
                   ) : (
                     <div class="flex h-40 w-full items-center justify-center bg-slate-100 text-slate-300">
-                      <i class="fa fa-newspaper text-2xl" aria-hidden="true" />
+                      <Icon name="fa-newspaper" size={24} />
                     </div>
                   )}
                   <div class="flex flex-1 flex-col p-5">

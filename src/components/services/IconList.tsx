@@ -1,5 +1,6 @@
 import React from 'react';
 import type { IconListContent } from './types';
+import Icon from '../global/Icon';
 
 const IconList: React.FC<IconListContent> = ({ items, columns = 2, title, subtitle }) => {
   const cols = columns === 3 ? 'lg:grid-cols-3' : columns === 1 ? 'md:grid-cols-1' : 'md:grid-cols-2';
@@ -16,7 +17,7 @@ const IconList: React.FC<IconListContent> = ({ items, columns = 2, title, subtit
           {items.map((it, i) => (
             <div key={i} className="flex items-start gap-4 p-4 border border-slate-200 rounded-xl shadow-sm bg-white">
               <div className="w-10 h-10 rounded-md bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                <i className={`fa ${it.icon ?? 'fa-check'} text-emerald-700`} aria-hidden="true"></i>
+                <Icon name={it.icon ?? 'fa-check'} className="text-orange-main" />
               </div>
               <div>
                 <div className="font-semibold mb-1">{it.title}</div>

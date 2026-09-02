@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { AccordionContent, AccordionItem } from './types';
+import Icon from '../global/Icon';
 
 const Accordion: React.FC<AccordionContent> = ({ items, title, subtitle }) => {
   const [open, setOpen] = useState<number | null>(0);
@@ -18,7 +19,7 @@ const Accordion: React.FC<AccordionContent> = ({ items, title, subtitle }) => {
             <div key={i}>
               <button onClick={() => toggle(i)} className="w-full text-left p-4 flex justify-between items-center">
                 <span className="font-medium">{it.title}</span>
-                <i className={`fa ${open === i ? 'fa-chevron-up' : 'fa-chevron-down'} text-slate-500`}></i>
+                <Icon name={open === i ? 'fa-chevron-up' : 'fa-chevron-down'} className="text-slate-500" />
               </button>
               {open === i && (
                 <div className="p-4 pt-0 text-slate-700 text-sm">{it.content}</div>

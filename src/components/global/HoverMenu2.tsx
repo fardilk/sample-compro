@@ -2,6 +2,7 @@ import React from 'react';
 import type { HoverMenuItem } from '../../utils/hoverMenu';
 import { serviceHref } from '../../utils/serviceLinks';
 import { isPlaceholder } from '../../utils/menuLinks';
+import Icon from './Icon';
 
 interface HoverMenu2Props {
   items: HoverMenuItem[];
@@ -34,7 +35,7 @@ const HoverMenu2: React.FC<HoverMenu2Props> = ({ items, className, linkBuilder, 
               }`}
             >
               <div className="flex items-center justify-center w-14 h-14 rounded-md bg-gradient-to-r from-blue-100 to-blue-50 mr-5">
-                <i className={`fa ${item.icon} text-2xl text-blue-600`} aria-hidden="true"></i>
+                <Icon name={item.icon} size={24} className="text-orange-main" />
               </div>
               <div className="flex-1 flex flex-col justify-start">
                 <span className="font-bold text-base mb-1 truncate" style={{ maxWidth: '16em' }}>
@@ -44,7 +45,7 @@ const HoverMenu2: React.FC<HoverMenu2Props> = ({ items, className, linkBuilder, 
                 <span className="text-gray-600 text-sm" style={{ maxWidth: '22em' }}>{item.description?.slice(0, 60)}</span>
               </div>
               <span className="ml-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <i className="fa fa-chevron-right text-xl text-blue-600" aria-hidden="true"></i>
+                <Icon name="fa-chevron-right" className="text-blue-600" />
               </span>
             </TopTag>
             {/* Render children as cards if present */}
@@ -62,14 +63,14 @@ const HoverMenu2: React.FC<HoverMenu2Props> = ({ items, className, linkBuilder, 
                       className="relative flex items-start bg-white border border-gray-100 rounded-lg shadow px-5 py-4 hover:shadow-lg transition-shadow duration-200 group cursor-pointer"
                     >
                       <div className="flex items-center justify-center w-10 h-10 rounded-md bg-gradient-to-r from-green-100 to-green-50 mr-4">
-                        <i className={`fa ${child.icon} text-xl text-green-600`} aria-hidden="true"></i>
+                        <Icon name={child.icon} className="text-orange-main" />
                       </div>
                       <div className="flex-1 flex flex-col justify-start">
                         <span className="font-semibold text-sm mb-1 truncate" style={{ maxWidth: '12em' }}>{child.label.slice(0, 30)}</span>
                         <span className="text-gray-500 text-xs" style={{ maxWidth: '18em' }}>{child.description?.slice(0, 60)}</span>
                       </div>
                       <span className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <i className="fa fa-chevron-right text-lg text-green-600" aria-hidden="true"></i>
+                        <Icon name="fa-chevron-right" size={18} className="text-green-600" />
                       </span>
                     </a>
                   );

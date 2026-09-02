@@ -2,6 +2,7 @@ import React from 'react';
 import { mainMenu } from '../../utils/hoverMenu';
 import type { HoverMenuItem } from '../../utils/hoverMenu';
 import { menuHref, isPlaceholder } from '../../utils/menuLinks';
+import Icon from './Icon';
 
 type Props = {
   open: boolean;
@@ -34,12 +35,13 @@ const Row: React.FC<{
         className={`flex w-full items-center justify-between gap-3 py-3.5 text-left text-gray-900 ${padding} ${weight}`}
       >
         <span className="flex min-w-0 items-center gap-3">
-          {icon && <i className={`fa ${icon} w-4 text-center text-orange-main`} aria-hidden="true" />}
+          {icon && <Icon name={icon} className="w-4 text-center text-orange-main" />}
           <span className="truncate">{label}</span>
         </span>
-        <i
-          className={`fa fa-chevron-down shrink-0 text-xs text-gray-400 transition-transform ${expanded ? 'rotate-180' : ''}`}
-          aria-hidden="true"
+        <Icon
+          name="fa-chevron-down"
+          size={12}
+          className={`shrink-0 text-gray-400 transition-transform ${expanded ? 'rotate-180' : ''}`}
         />
       </button>
     );
@@ -52,7 +54,7 @@ const Row: React.FC<{
       className={`block py-3 text-gray-700 active:bg-gray-100 ${padding} ${weight}`}
     >
       <span className="flex min-w-0 items-center gap-3">
-        {icon && <i className={`fa ${icon} w-4 text-center text-orange-main`} aria-hidden="true" />}
+        {icon && <Icon name={icon} className="w-4 text-center text-orange-main" />}
         <span className="min-w-0">
           <span className="block truncate">{label}</span>
           {description && (
@@ -175,7 +177,7 @@ const MobileNav: React.FC<Props> = ({ open, onClose }) => {
             aria-label="Tutup menu"
             className="flex h-9 w-9 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100"
           >
-            <i className="fa fa-xmark text-lg" aria-hidden="true" />
+            <Icon name="fa-xmark" size={18} />
           </button>
         </div>
 
@@ -234,7 +236,7 @@ const MobileNav: React.FC<Props> = ({ open, onClose }) => {
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-3 text-center font-semibold text-gray-800"
           >
-            <i className="fa fa-comments" aria-hidden="true" />
+            <Icon name="fa-comments" />
             Chat WhatsApp
           </a>
         </div>

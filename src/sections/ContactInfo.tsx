@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '../components/global/Icon';
 
 /** Phone, email and address block shown next to the contact form. */
 const ContactInfo: React.FC<{ heading?: string }> = ({ heading = 'Contact Information' }) => (
@@ -19,7 +20,7 @@ const ContactInfo: React.FC<{ heading?: string }> = ({ heading = 'Contact Inform
                 </div>
                 <div className="flex items-start">
                   <span className="text-blue-600 mr-3">
-                    <i className="fas fa-map-marker-alt" aria-hidden="true" />
+                    <Icon name="fa-map-marker-alt" />
                   </span>
                   <span>Jl. Wr. Jati Barat No.39 6th Floor, Jati Padang, Kec. Pancoran, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12540</span>
                 </div>
