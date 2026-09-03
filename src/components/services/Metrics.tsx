@@ -1,23 +1,32 @@
 import React from 'react';
+import Section from './Section';
+import type { Tone } from './Section';
 
-interface Metric { label: string; value: string; }
-interface MetricsProps { items: Metric[]; }
+interface Metric {
+  label: string;
+  value: string;
+}
+interface MetricsProps {
+  items: Metric[];
+  title?: string;
+  tone?: Tone;
+}
 
-const Metrics: React.FC<MetricsProps> = ({ items }) => {
-  return (
-    <section className="py-12 bg-white">
-      <div className="mx-auto" style={{ width: '90%' }}>
-        <div className="grid md:grid-cols-4 gap-6 text-center">
-          {items.map((m, i) => (
-            <div key={i} className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
-              <div className="text-3xl font-bold mb-1">{m.value}</div>
-              <div className="text-slate-600">{m.label}</div>
-            </div>
-          ))}
+/** The numbers that make a claim concrete, shown large enough to be the claim. */
+const Metrics: React.FC<MetricsProps> = ({ items, title, tone }) => (
+  <Section title={title} tone={tone}>
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {items.map((m, i) => (
+        <div
+          key={i}
+          className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm"
+        >
+          <div className="text-3xl font-extrabold text-orange-main md:text-4xl">{m.value}</div>
+          <div className="mt-1 text-sm text-slate-600">{m.label}</div>
         </div>
-      </div>
-    </section>
-  );
-};
+      ))}
+    </div>
+  </Section>
+);
 
 export default Metrics;

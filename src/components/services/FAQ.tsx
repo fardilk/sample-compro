@@ -1,23 +1,38 @@
 import React from 'react';
-
 import type { QnAItem } from './types';
-interface FAQProps { items: QnAItem[]; }
+import Icon from '../global/Icon';
+import Section from './Section';
+import type { Tone } from './Section';
 
-const FAQ: React.FC<FAQProps> = ({ items }) => {
-  return (
-    <section className="py-12 bg-white">
-      <div className="mx-auto" style={{ width: '90%' }}>
-        <div className="divide-y divide-slate-200 border border-slate-200 rounded-md bg-white">
-          {items.map((qa, i) => (
-            <details key={i} className="p-4">
-              <summary className="font-semibold cursor-pointer">{qa.q}</summary>
-              <p className="text-slate-700 mt-2">{qa.a}</p>
-            </details>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
+interface FAQProps {
+  items: QnAItem[];
+  title?: string;
+  tone?: Tone;
+}
+
+/**
+ * The band used to render with no heading at all, so a list of questions
+ * appeared under nothing. The label existed in the template all along; it was
+ * never passed in.
+ */
+const FAQ: React.FC<FAQProps> = ({ items, title, tone }) => (
+  <Section title={title} tone={tone}>
+    <div className="mx-auto max-w-3xl divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white">
+      {items.map((qa, i) => (
+        <details key={i} className="group p-4 open:bg-slate-50/60">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-slate-900">
+            {qa.q}
+            <Icon
+              name="fa-chevron-down"
+              size={16}
+              className="shrink-0 text-slate-400 transition-transform group-open:rotate-180"
+            />
+          </summary>
+          <p className="mt-2.5 text-slate-700">{qa.a}</p>
+        </details>
+      ))}
+    </div>
+  </Section>
+);
 
 export default FAQ;

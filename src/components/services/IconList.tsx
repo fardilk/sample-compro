@@ -1,33 +1,38 @@
 import React from 'react';
 import type { IconListContent } from './types';
 import Icon from '../global/Icon';
+import Section from './Section';
+import type { Tone } from './Section';
 
-const IconList: React.FC<IconListContent> = ({ items, columns = 2, title, subtitle }) => {
-  const cols = columns === 3 ? 'lg:grid-cols-3' : columns === 1 ? 'md:grid-cols-1' : 'md:grid-cols-2';
+const IconList: React.FC<IconListContent & { tone?: Tone }> = ({
+  items,
+  columns = 2,
+  title,
+  subtitle,
+  tone,
+}) => {
+  const cols =
+    columns === 3 ? 'md:grid-cols-2 lg:grid-cols-3' : columns === 1 ? '' : 'md:grid-cols-2';
+
   return (
-    <section className="py-12 bg-white">
-      <div className="mx-auto" style={{ width: '90%' }}>
-        {(title || subtitle) && (
-          <div className="mb-6">
-            {title && <h2 className="text-2xl md:text-3xl font-bold mb-1">{title}</h2>}
-            {subtitle && <div className="text-slate-700">{subtitle}</div>}
-          </div>
-        )}
-        <div className={`grid grid-cols-1 ${cols} gap-6`}>
-          {items.map((it, i) => (
-            <div key={i} className="flex items-start gap-4 p-4 border border-slate-200 rounded-xl shadow-sm bg-white">
-              <div className="w-10 h-10 rounded-md bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                <Icon name={it.icon ?? 'fa-check'} className="text-orange-main" />
-              </div>
-              <div>
-                <div className="font-semibold mb-1">{it.title}</div>
-                {it.text && <div className="text-slate-700 text-sm">{it.text}</div>}
-              </div>
+    <Section title={title} subtitle={typeof subtitle === 'string' ? subtitle : undefined} tone={tone}>
+      <div className={`grid grid-cols-1 ${cols} gap-4`}>
+        {items.map((it, i) => (
+          <div
+            key={i}
+            className="flex items-start gap-3.5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+              <Icon name={it.icon ?? 'fa-check'} size={19} className="text-emerald-600" />
             </div>
-          ))}
-        </div>
+            <div className="min-w-0">
+              <div className="font-medium leading-snug text-slate-900">{it.title}</div>
+              {it.text && <div className="mt-1 text-sm text-slate-600">{it.text}</div>}
+            </div>
+          </div>
+        ))}
       </div>
-    </section>
+    </Section>
   );
 };
 

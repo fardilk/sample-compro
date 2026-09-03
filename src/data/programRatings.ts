@@ -35,6 +35,18 @@ export const programRatings: Record<string, ProgramRating> = {
   'executive-search/specialist-recruitment': { score: 4.6, count: 31 },
 };
 
-export const ratingOf = (key: string): ProgramRating | undefined => programRatings[key];
+/**
+ * Whether seeded ratings are allowed on the public site.
+ *
+ * They are placeholders, and a page that prints "4.8 from 137 participants" is
+ * making a factual claim about real people that no one has actually made. That
+ * is fine while the figures are obviously provisional and the site is being
+ * built out; it should not outlive the likes endpoint. Set this to false to
+ * hide every rating in one edit, without touching a component.
+ */
+export const SHOW_SEEDED_RATINGS = true;
+
+export const ratingOf = (key: string): ProgramRating | undefined =>
+  SHOW_SEEDED_RATINGS ? programRatings[key] : undefined;
 
 export default programRatings;
