@@ -113,9 +113,33 @@ const CmsService: React.FC<{ service: Service; heroImage?: string }> = ({ servic
       ? { score: service.rating_score, count: service.rating_count }
       : undefined;
 
-  const arranged: CmsSection[] = service.sections?.length
-    ? service.sections
-    : DEFAULT_ORDER.map((key) => ({ key, title: '', subtitle: '', tone: 'auto', enabled: true }));
+  const asDefault = (key: string): CmsSection => ({
+    key,
+    title: '',
+    subtitle: '',
+    tone: 'auto',
+    enabled: true,
+  });
+
+  // A saved arrangement is followed as given, then any band it does not mention
+  // is appended. Omission is not the same as switching a band off: without
+  // this, a section added to the template after a page was last arranged would
+  // hold content that never appears and gives no clue why.
+  //
+  // The closing block is pulled to the end regardless. It is the page's sign
+  // off, and an appended band landing under it would read as a mistake.
+  const saved = service.sections ?? [];
+  const named = new Set(saved.map((section) => section.key));
+  const missing = DEFAULT_ORDER.filter((key) => key !== 'cta' && !named.has(key)).map(asDefault);
+  const arranged: CmsSection[] = saved.length
+    ? [
+        ...saved.filter((section) => section.key !== 'cta'),
+        ...missing,
+        ...(saved.filter((section) => section.key === 'cta').length
+          ? saved.filter((section) => section.key === 'cta')
+          : [asDefault('cta')]),
+      ]
+    : DEFAULT_ORDER.map(asDefault);
 
   /** A band's heading: the CMS override, else the template's own wording. */
   const titleOf = (section: CmsSection, fallback?: string) => section.title || fallback;
