@@ -4,14 +4,26 @@ import Icon from '../global/Icon';
 import Section from './Section';
 import type { Tone } from './Section';
 
-type PricingProps = PricingContent & { title?: string; tone?: Tone; highlightIndex?: number };
+type PricingProps = PricingContent & {
+  title?: string;
+  tone?: Tone;
+  highlightIndex?: number;
+  /** Where the plan's button books a seat; the catalogue page when unset. */
+  reserveHref?: string;
+};
 
 /**
  * Plans sit on a shared baseline: the name and the figure line up across every
  * card whatever the feature list does, so the eye compares prices rather than
  * hunting for them.
  */
-const Pricing: React.FC<PricingProps> = ({ plans, title, tone, highlightIndex }) => (
+const Pricing: React.FC<PricingProps> = ({
+  plans,
+  title,
+  tone,
+  highlightIndex,
+  reserveHref = '/reserve-program',
+}) => (
   <Section title={title} tone={tone}>
     <div
       className={`grid gap-5 ${plans.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-3'}`}
@@ -46,7 +58,7 @@ const Pricing: React.FC<PricingProps> = ({ plans, title, tone, highlightIndex })
               ))}
             </ul>
             <a
-              href="/reserve-program"
+              href={reserveHref}
               className="mt-5 inline-block rounded-lg bg-orange-main px-5 py-2.5 text-center font-semibold text-white transition-colors hover:bg-orange-dark"
             >
               Reservasi Kursi

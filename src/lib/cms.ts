@@ -41,6 +41,15 @@ export type CmsSchedule = CmsRow & {
   register_url: string;
 };
 
+/** One band on a service page, as arranged in the CMS. */
+export type CmsSection = {
+  key: string;
+  title: string;
+  subtitle: string;
+  tone: 'auto' | 'white' | 'muted' | 'dark' | string;
+  enabled: boolean;
+};
+
 export type CmsService = {
   id: number;
   slug: string;
@@ -64,6 +73,14 @@ export type CmsService = {
   secondary_cta_text: string;
   secondary_cta_href: string;
   intro: string;
+  /** Null or empty means the template's own default arrangement. */
+  sections: CmsSection[] | null;
+  audience: string;
+  card_image: string;
+  rating_score: number;
+  rating_count: number;
+  cta_title: string;
+  cta_subtitle: string;
   highlights: CmsHighlight[];
   steps: CmsStep[];
   outcomes: CmsOutcome[];

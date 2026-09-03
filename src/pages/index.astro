@@ -12,7 +12,6 @@ import type { CmsService } from '../lib/cms';
 import { serviceRoutes } from '../data/serviceRoutes';
 import { trainingPrograms } from '../data/trainingPrograms';
 import { programCatalog } from '../data/programCatalog';
-import { ratingOf } from '../data/programRatings';
 
 const services = await getServices();
 const cms = new Map(services.map((s) => [`${s.category}/${s.slug}`, s]));
@@ -44,7 +43,13 @@ const upcomingOf = (s: CmsService) =>
     .sort((a, b) => new Date(a.starts_at!).getTime() - new Date(b.starts_at!).getTime())
     .find((x) => new Date(x.starts_at!).getTime() > Date.now());
 
-/** Who each programme is for, written once in the catalogue the forms also use. */
+/**
+ * Who each programme is for.
+ *
+ * The CMS holds this per service and wins. This map covers the programmes that
+ * have no CMS entry at all — they are menu routes with a written page, and
+ * there is no panel row to edit.
+ */
 const audiences = new Map(
   programCatalog.flatMap((category) =>
     category.items.map((item) => [`${category.slug}/${item.slug}`, item.audience]),
@@ -65,9 +70,19 @@ const durationOf = (starts?: string | null, ends?: string | null) => {
 };
 
 /**
+ * Ratings come from the CMS and nowhere else: a score is a claim about real
+ * participants, so a programme with no entry shows none rather than a number
+ * this repo made up.
+ */
+const ratingOf = (entry: CmsService | undefined) =>
+  entry && entry.rating_score > 0 && entry.rating_count > 0
+    ? { score: entry.rating_score, count: entry.rating_count }
+    : undefined;
+
+/**
  * Photographs that ship with the site rather than living in the CMS. A
  * programme with a real picture should use it even before anyone creates a CMS
- * entry for it; a CMS hero_image still wins.
+ * entry for it; the CMS card image or hero image still wins.
  */
 const SHIPPED_COVER: Record<string, string> = {
   'training/butler-training': '/img/butler-training-langham-card.jpg',
@@ -100,13 +115,15 @@ for (const route of serviceRoutes) {
     title: entry?.title ?? written?.title ?? route.title,
     blurb: entry?.subtitle || written?.subtitle || route.description,
     date: schedule?.starts_at ? dateFormat.format(new Date(schedule.starts_at)) : undefined,
-    cover: (entry ? await localise(entry.hero_image, 600, 488) : undefined) ?? SHIPPED_COVER[key],
+    cover:
+      (entry ? await localise(entry.card_image || entry.hero_image, 600, 488) : undefined) ??
+      SHIPPED_COVER[key],
     icon: route.icon ?? iconFor(route.categorySlug),
-    audience: audiences.get(key) || undefined,
+    audience: entry?.audience || audiences.get(key) || undefined,
     duration: durationOf(schedule?.starts_at, schedule?.ends_at),
     format: formatOf(schedule?.format),
     seatsLeft: schedule?.seats_left,
-    rating: ratingOf(key),
+    rating: ratingOf(entry),
   });
 }
 
@@ -122,13 +139,14 @@ for (const service of services) {
     title: service.title,
     blurb: service.subtitle ?? '',
     date: schedule?.starts_at ? dateFormat.format(new Date(schedule.starts_at)) : undefined,
-    cover: (await localise(service.hero_image, 600, 488)) ?? SHIPPED_COVER[key],
+    cover:
+      (await localise(service.card_image || service.hero_image, 600, 488)) ?? SHIPPED_COVER[key],
     icon: iconFor(service.category),
-    audience: audiences.get(key) || undefined,
+    audience: service.audience || audiences.get(key) || undefined,
     duration: durationOf(schedule?.starts_at, schedule?.ends_at),
     format: formatOf(schedule?.format),
     seatsLeft: schedule?.seats_left,
-    rating: ratingOf(key),
+    rating: ratingOf(service),
   });
 }
 

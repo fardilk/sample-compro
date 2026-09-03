@@ -50,6 +50,9 @@ export async function buildCatalog(): Promise<CatalogCategory[]> {
       return {
         ...item,
         blurb: cms?.subtitle?.trim() || item.blurb,
+        // The CMS is where this is edited; the in-repo line covers the
+        // programmes that have no panel row to edit.
+        audience: cms?.audience?.trim() || item.audience,
         batches: openBatches(cms),
       };
     }),
@@ -76,9 +79,7 @@ export async function buildCatalog(): Promise<CatalogCategory[]> {
       slug: service.slug,
       title: service.title,
       blurb: service.subtitle ?? '',
-      // Nothing in the CMS says who a programme is for, so the hint is left
-      // empty rather than guessed at; the form simply omits the line.
-      audience: '',
+      audience: service.audience ?? '',
       batches: openBatches(service),
     });
   }

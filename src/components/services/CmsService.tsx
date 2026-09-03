@@ -10,22 +10,39 @@ import Testimonials from './Testimonials';
 import FAQ from './FAQ';
 import ContactCTA from './ContactCTA';
 import Icon from '../global/Icon';
-import { ratingOf } from '../../data/programRatings';
-import type { CmsService as Service } from '../../lib/cms';
+import type { CmsSection, CmsService as Service } from '../../lib/cms';
 
 /**
  * Renders a service page from CMS data.
  *
  * Every section here is static, so the page hydrates nothing and ships no
- * JavaScript. The template only decides the headings and the order: the
- * repeating groups are the same shape in all three, which is why one component
- * covers them.
+ * JavaScript. The repeating groups are the same shape in all three templates,
+ * which is why one component covers them.
  *
- * Sections are assembled as a list and given their background afterwards, so
- * no two adjacent bands can share one. Done inline, the page ran six white
- * bands in a row and read as a single undifferentiated column — the same rule
- * the homepage already follows.
+ * The arrangement — which bands appear, in what order, under what heading and
+ * on what background — comes from the CMS, so laying out a new service is done
+ * in the panel rather than here. A service that has never been arranged falls
+ * back to the order and wording below, which is what every page did before the
+ * panel could express it, so nothing had to be migrated.
+ *
+ * A band set to "auto" takes its background from its position among the other
+ * auto bands, so no two adjacent ones match. Pinned inline, the page ran six
+ * white bands in a row and read as one undifferentiated column.
  */
+
+/** The arrangement used when the CMS holds none. */
+const DEFAULT_ORDER = [
+  'intro',
+  'metrics',
+  'highlights',
+  'outcomes',
+  'steps',
+  'schedules',
+  'plans',
+  'proofs',
+  'faqs',
+  'cta',
+];
 
 type Labels = {
   highlights: string;
@@ -87,169 +104,212 @@ const formatRange = (start: string | null, end: string | null) => {
 
 const CmsService: React.FC<{ service: Service; heroImage?: string }> = ({ service, heroImage }) => {
   const labels = LABELS[service.template] ?? LABELS.program;
-  const rating = ratingOf(`${service.category}/${service.slug}`);
+  const reserveHref = `/reserve-program?category=${service.category}&program=${service.slug}`;
 
-  // Each entry renders one band. Built as a list so the alternation below is
-  // computed rather than hand-maintained, and stays right when a service has
-  // no plans, no schedule, or no proofs.
-  const blocks: Array<(tone: Tone) => React.ReactNode> = [];
+  // Only shown when the CMS holds both halves. A score with no count says
+  // nothing, and neither half is invented here.
+  const rating =
+    service.rating_score > 0 && service.rating_count > 0
+      ? { score: service.rating_score, count: service.rating_count }
+      : undefined;
 
-  if (service.intro) {
-    blocks.push((tone) => (
-      <Section key="intro" tone={tone}>
-        <p className="max-w-3xl text-lg leading-relaxed text-slate-700">{service.intro}</p>
-      </Section>
-    ));
-  }
+  const arranged: CmsSection[] = service.sections?.length
+    ? service.sections
+    : DEFAULT_ORDER.map((key) => ({ key, title: '', subtitle: '', tone: 'auto', enabled: true }));
 
-  if (service.metrics.length > 0) {
-    blocks.push((tone) => (
-      <Metrics
-        key="metrics"
-        tone={tone}
-        title={labels.metrics}
-        items={service.metrics.map((m) => ({ label: m.label, value: m.value }))}
-      />
-    ));
-  }
+  /** A band's heading: the CMS override, else the template's own wording. */
+  const titleOf = (section: CmsSection, fallback?: string) => section.title || fallback;
 
-  if (service.highlights.length > 0) {
-    blocks.push((tone) => (
-      <Features
-        key="highlights"
-        tone={tone}
-        title={labels.highlights}
-        items={service.highlights.map((h) => ({ icon: h.icon, title: h.title, text: h.body }))}
-        columns={service.highlights.length === 4 ? 4 : 3}
-      />
-    ));
-  }
+  // One renderer per band. A band whose group is empty returns null, so
+  // switching it on in the panel cannot produce an empty heading on the page.
+  const renderers: Record<string, (section: CmsSection, tone: Tone) => React.ReactNode> = {
+    intro: (section, tone) =>
+      service.intro ? (
+        <Section key="intro" tone={tone} title={section.title} subtitle={section.subtitle}>
+          <p className="max-w-3xl text-lg leading-relaxed text-slate-700">{service.intro}</p>
+        </Section>
+      ) : null,
 
-  if (service.outcomes.length > 0) {
-    blocks.push((tone) => (
-      <IconList
-        key="outcomes"
-        tone={tone}
-        title={labels.outcomes}
-        items={service.outcomes.map((o) => ({ title: o.text, icon: o.icon || 'fa-check' }))}
-        columns={2}
-      />
-    ));
-  }
+    metrics: (section, tone) =>
+      service.metrics.length > 0 ? (
+        <Metrics
+          key="metrics"
+          tone={tone}
+          title={titleOf(section, labels.metrics)}
+          items={service.metrics.map((m) => ({ label: m.label, value: m.value }))}
+        />
+      ) : null,
 
-  if (service.steps.length > 0) {
-    blocks.push((tone) => (
-      <Section key="steps" tone={tone} title={labels.steps}>
-        <ol className="space-y-3">
-          {service.steps.map((step, i) => (
-            <li
-              key={step.id ?? i}
-              className="flex gap-4 rounded-xl border border-slate-200 bg-white p-5"
-            >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-main font-semibold text-white">
-                {i + 1}
-              </span>
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-baseline gap-x-3">
-                  <h3 className="font-semibold text-slate-900">{step.title}</h3>
-                  {step.meta && <span className="text-sm text-slate-500">{step.meta}</span>}
-                </div>
-                {step.body && <p className="mt-1 text-slate-700">{step.body}</p>}
-              </div>
-            </li>
-          ))}
-        </ol>
-      </Section>
-    ));
-  }
+    highlights: (section, tone) =>
+      service.highlights.length > 0 ? (
+        <Features
+          key="highlights"
+          tone={tone}
+          title={titleOf(section, labels.highlights)}
+          subtitle={section.subtitle}
+          items={service.highlights.map((h) => ({ icon: h.icon, title: h.title, text: h.body }))}
+          columns={service.highlights.length === 4 ? 4 : 3}
+        />
+      ) : null,
 
-  if (service.schedules.length > 0) {
-    blocks.push((tone) => (
-      <Section
-        key="schedules"
-        tone={tone}
-        title={labels.schedules}
-        subtitle="Kursi dikonfirmasi setelah pembayaran diterima."
-      >
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {service.schedules.map((s, i) => (
-            <div
-              key={s.id ?? i}
-              className="flex flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
-            >
-              <p className="inline-flex items-center gap-2 font-semibold text-slate-900">
-                <Icon name="fa-calendar" size={16} className="text-orange-main" />
-                {formatRange(s.starts_at, s.ends_at)}
-              </p>
-              <p className="mt-1.5 text-sm text-slate-600">
-                {[s.city, s.format].filter(Boolean).join(' · ')}
-              </p>
-              {s.price && <p className="mt-2 font-semibold text-slate-900">{s.price}</p>}
-              {s.seats_total > 0 && (
-                <p className="mt-1 text-sm text-orange-dark">
-                  Sisa {s.seats_left} dari {s.seats_total} kursi
-                </p>
-              )}
-              <a
-                href={
-                  s.register_url ||
-                  `/reserve-program?category=${service.category}&program=${service.slug}`
-                }
-                className="mt-4 inline-block rounded-lg bg-orange-main px-4 py-2.5 text-center font-semibold text-white transition-colors hover:bg-orange-dark"
+    outcomes: (section, tone) =>
+      service.outcomes.length > 0 ? (
+        <IconList
+          key="outcomes"
+          tone={tone}
+          title={titleOf(section, labels.outcomes)}
+          subtitle={section.subtitle}
+          items={service.outcomes.map((o) => ({ title: o.text, icon: o.icon || 'fa-check' }))}
+          columns={2}
+        />
+      ) : null,
+
+    steps: (section, tone) =>
+      service.steps.length > 0 ? (
+        <Section
+          key="steps"
+          tone={tone}
+          title={titleOf(section, labels.steps)}
+          subtitle={section.subtitle}
+        >
+          <ol className="space-y-3">
+            {service.steps.map((step, i) => (
+              <li
+                key={step.id ?? i}
+                className="flex gap-4 rounded-xl border border-slate-200 bg-white p-5"
               >
-                Reservasi Kursi
-              </a>
-            </div>
-          ))}
-        </div>
-      </Section>
-    ));
-  }
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-main font-semibold text-white">
+                  {i + 1}
+                </span>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-baseline gap-x-3">
+                    <h3 className="font-semibold text-slate-900">{step.title}</h3>
+                    {step.meta && <span className="text-sm text-slate-500">{step.meta}</span>}
+                  </div>
+                  {step.body && <p className="mt-1 text-slate-700">{step.body}</p>}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </Section>
+      ) : null,
 
-  if (service.plans.length > 0) {
-    blocks.push((tone) => (
-      <Pricing
-        key="plans"
-        tone={tone}
-        title={labels.plans}
-        plans={service.plans.map((p) => ({
-          name: p.name,
-          price: [p.price, p.note].filter(Boolean).join(' — '),
-          features: p.features ?? [],
-        }))}
-        highlightIndex={service.plans.findIndex((p) => p.highlighted)}
-      />
-    ));
-  }
+    schedules: (section, tone) =>
+      service.schedules.length > 0 ? (
+        <Section
+          key="schedules"
+          tone={tone}
+          title={titleOf(section, labels.schedules)}
+          subtitle={section.subtitle || 'Kursi dikonfirmasi setelah pembayaran diterima.'}
+        >
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {service.schedules.map((s, i) => (
+              <div
+                key={s.id ?? i}
+                className="flex flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+              >
+                <p className="inline-flex items-center gap-2 font-semibold text-slate-900">
+                  <Icon name="fa-calendar" size={16} className="text-orange-main" />
+                  {formatRange(s.starts_at, s.ends_at)}
+                </p>
+                <p className="mt-1.5 text-sm text-slate-600">
+                  {[s.city, s.format].filter(Boolean).join(' · ')}
+                </p>
+                {s.price && <p className="mt-2 font-semibold text-slate-900">{s.price}</p>}
+                {s.seats_total > 0 && (
+                  <p className="mt-1 text-sm text-orange-dark">
+                    Sisa {s.seats_left} dari {s.seats_total} kursi
+                  </p>
+                )}
+                <a
+                  href={s.register_url || reserveHref}
+                  className="mt-4 inline-block rounded-lg bg-orange-main px-4 py-2.5 text-center font-semibold text-white transition-colors hover:bg-orange-dark"
+                >
+                  Reservasi Kursi
+                </a>
+              </div>
+            ))}
+          </div>
+        </Section>
+      ) : null,
 
-  if (service.proofs.length > 0) {
-    blocks.push((tone) => (
-      <Testimonials
-        key="proofs"
-        tone={tone}
-        title={labels.proofs}
-        rating={rating}
-        items={service.proofs.map((p) => ({
-          name: p.name,
-          role: p.role || undefined,
-          company: p.company || undefined,
-          text: p.quote || p.result,
-          result: p.quote ? p.result || undefined : undefined,
-        }))}
-      />
-    ));
-  }
+    plans: (section, tone) =>
+      service.plans.length > 0 ? (
+        <Pricing
+          key="plans"
+          tone={tone}
+          title={titleOf(section, labels.plans)}
+          reserveHref={reserveHref}
+          plans={service.plans.map((p) => ({
+            name: p.name,
+            price: [p.price, p.note].filter(Boolean).join(' — '),
+            features: p.features ?? [],
+          }))}
+          highlightIndex={service.plans.findIndex((p) => p.highlighted)}
+        />
+      ) : null,
 
-  if (service.faqs.length > 0) {
-    blocks.push((tone) => (
-      <FAQ
-        key="faqs"
-        tone={tone}
-        title={labels.faqs}
-        items={service.faqs.map((f) => ({ q: f.question, a: f.answer }))}
+    proofs: (section, tone) =>
+      service.proofs.length > 0 ? (
+        <Testimonials
+          key="proofs"
+          tone={tone}
+          title={titleOf(section, labels.proofs)}
+          subtitle={section.subtitle}
+          rating={rating}
+          items={service.proofs.map((p) => ({
+            name: p.name,
+            role: p.role || undefined,
+            company: p.company || undefined,
+            text: p.quote || p.result,
+            result: p.quote ? p.result || undefined : undefined,
+          }))}
+        />
+      ) : null,
+
+    faqs: (section, tone) =>
+      service.faqs.length > 0 ? (
+        <FAQ
+          key="faqs"
+          tone={tone}
+          title={titleOf(section, labels.faqs)}
+          items={service.faqs.map((f) => ({ q: f.question, a: f.answer }))}
+        />
+      ) : null,
+
+    // The closing block brings its own colour, so it takes no tone and does not
+    // count towards the alternation.
+    cta: (section) => (
+      <ContactCTA
+        key="cta"
+        content={{
+          title: section.title || service.cta_title || `Bicarakan kebutuhan ${service.title} Anda`,
+          subtitle:
+            section.subtitle ||
+            service.cta_subtitle ||
+            'Konsultasi awal tanpa biaya. Kami balas dalam 1x24 jam kerja.',
+          primaryTo: '/book-consultation',
+          primaryText: 'Book Consultation',
+          secondaryTo: reserveHref,
+          secondaryText: 'Reservasi Program',
+        }}
       />
-    ));
-  }
+    ),
+  };
+
+  // Rendered first so the alternation counts only the bands that survived: a
+  // band whose group is empty must not consume a colour and leave two visible
+  // neighbours sharing one.
+  let autoIndex = 0;
+  const bands = arranged
+    .filter((section) => section.enabled !== false && renderers[section.key])
+    .map((section) => {
+      const fixed = section.tone && section.tone !== 'auto' ? (section.tone as Tone) : null;
+      const node = renderers[section.key](section, fixed ?? (autoIndex % 2 === 0 ? 'white' : 'muted'));
+      if (node && !fixed && section.key !== 'cta') autoIndex += 1;
+      return node;
+    })
+    .filter(Boolean);
 
   return (
     <>
@@ -263,19 +323,7 @@ const CmsService: React.FC<{ service: Service; heroImage?: string }> = ({ servic
         secondaryText={service.secondary_cta_text || undefined}
         secondaryTo={service.secondary_cta_href || undefined}
       />
-
-      {blocks.map((render, i) => render(i % 2 === 0 ? 'white' : 'muted'))}
-
-      <ContactCTA
-        content={{
-          title: `Bicarakan kebutuhan ${service.title} Anda`,
-          subtitle: 'Konsultasi awal tanpa biaya. Kami balas dalam 1x24 jam kerja.',
-          primaryTo: '/book-consultation',
-          primaryText: 'Book Consultation',
-          secondaryTo: `/reserve-program?category=${service.category}&program=${service.slug}`,
-          secondaryText: 'Reservasi Program',
-        }}
-      />
+      {bands}
     </>
   );
 };
