@@ -64,7 +64,7 @@ const LABELS: Record<string, Labels> = {
     plans: 'Investasi',
     faqs: 'Pertanyaan Umum',
     schedules: 'Jadwal Terdekat',
-    metrics: 'Program Ini dalam Angka',
+    metrics: 'Info Umum Pelatihan',
   },
   engagement: {
     highlights: 'Apakah Ini Masalah Anda',
@@ -74,7 +74,7 @@ const LABELS: Record<string, Labels> = {
     plans: 'Model Kerja Sama',
     faqs: 'Pertanyaan Umum',
     schedules: 'Jadwal Terdekat',
-    metrics: 'Layanan Ini dalam Angka',
+    metrics: 'Info Umum Layanan',
   },
   retainer: {
     highlights: 'Cakupan Layanan',
@@ -84,7 +84,7 @@ const LABELS: Record<string, Labels> = {
     plans: 'Model Biaya',
     faqs: 'Pertanyaan Umum',
     schedules: 'Jadwal Terdekat',
-    metrics: 'Layanan Ini dalam Angka',
+    metrics: 'Info Umum Layanan',
   },
 };
 
@@ -100,6 +100,55 @@ const formatRange = (start: string | null, end: string | null) => {
   const from = dateFormat.format(new Date(start));
   if (!end) return from;
   return `${from} – ${dateFormat.format(new Date(end))}`;
+};
+
+const shortDate = new Intl.DateTimeFormat('id-ID', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'Asia/Jakarta',
+});
+
+/** Bracketed text is an editor's note in the panel, never a figure to publish. */
+const usable = (value: string | null | undefined) =>
+  value && value.trim() && !value.includes('[') ? value.trim() : undefined;
+
+/** Inclusive day count, so 15–17 September reads as three days. */
+const dayCount = (start: string, end?: string | null) => {
+  const from = new Date(start);
+  const to = end ? new Date(end) : from;
+  return Math.round((to.setHours(0, 0, 0, 0) - from.setHours(0, 0, 0, 0)) / 86_400_000) + 1;
+};
+
+/**
+ * The general facts about a programme, taken from the batch that is open.
+ *
+ * These are already in the CMS as structured fields — the dates, the seat
+ * count, the format, the price — so asking an editor to retype them as metric
+ * rows would only create a second copy to keep in step. Whatever they did
+ * write wins: a derived fact whose label is already covered is dropped.
+ */
+const derivedInfo = (service: Service) => {
+  const next = service.schedules
+    .filter((s) => s.starts_at)
+    .sort((a, b) => new Date(a.starts_at!).getTime() - new Date(b.starts_at!).getTime())
+    .find((s) => new Date(s.starts_at!).getTime() > Date.now());
+  if (!next) return [];
+
+  const days = dayCount(next.starts_at!, next.ends_at);
+
+  // The city field is already written for a reader ("Daring via Zoom"); the
+  // format beside it is the raw enum, so pairing them prints the same thing
+  // twice. Only fall back to the enum when there is no city.
+  const place = next.city?.trim() || next.format?.trim() || '';
+
+  return [
+    { label: 'Durasi', value: days > 0 ? `${days} hari` : '' },
+    { label: 'Batch berikutnya', value: shortDate.format(new Date(next.starts_at!)) },
+    { label: 'Kuota per batch', value: next.seats_total > 0 ? `${next.seats_total} peserta` : '' },
+    { label: 'Pelaksanaan', value: place ? place[0].toUpperCase() + place.slice(1) : '' },
+    { label: 'Investasi', value: usable(next.price) ?? '' },
+  ].filter((item) => item.value);
 };
 
 const CmsService: React.FC<{ service: Service; heroImage?: string }> = ({ service, heroImage }) => {
@@ -154,15 +203,33 @@ const CmsService: React.FC<{ service: Service; heroImage?: string }> = ({ servic
         </Section>
       ) : null,
 
-    metrics: (section, tone) =>
-      service.metrics.length > 0 ? (
+    metrics: (section, tone) => {
+      const authored = service.metrics.map((m) => ({ label: m.label, value: m.value }));
+
+      // A derived fact is dropped when the editor already wrote it, matched on
+      // either half: "3 hari — Durasi" and "3 hari — Pembekalan, bimbingan dan
+      // asesmen" are the same fact under two names, and printing both looks
+      // like a bug.
+      const covered = new Set(
+        authored.flatMap((m) => [m.label.trim().toLowerCase(), m.value.trim().toLowerCase()]),
+      );
+      const items = [
+        ...authored,
+        ...derivedInfo(service).filter(
+          (m) =>
+            !covered.has(m.label.toLowerCase()) && !covered.has(m.value.toLowerCase()),
+        ),
+      ];
+      return items.length > 0 ? (
         <Metrics
           key="metrics"
           tone={tone}
           title={titleOf(section, labels.metrics)}
-          items={service.metrics.map((m) => ({ label: m.label, value: m.value }))}
+          subtitle={section.subtitle}
+          items={items}
         />
-      ) : null,
+      ) : null;
+    },
 
     highlights: (section, tone) =>
       service.highlights.length > 0 ? (
