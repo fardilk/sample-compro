@@ -1,8 +1,6 @@
 import React from 'react';
 import type { HeaderProps } from '../types';
-import Button from './Button';
 import { mainMenu } from '../../utils/hoverMenu';
-import type { HoverMenuItem } from '../../utils/hoverMenu';
 import HoverMenu2 from './HoverMenu2';
 import { menuHref } from '../../utils/menuLinks';
 import MobileNav from './MobileNav';
@@ -62,9 +60,14 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
             {/* Right: Button */}
             <div className="flex items-center justify-end">
               <div className="flex gap-3">
-                <Button variant="filled" color="orange-main" className="hidden md:block cursor-pointer">
+                {/* A link, not a button: this only navigates, so the browser
+                    should handle it (new tab, middle click, crawlers). */}
+                <a
+                  href="/reserve-program"
+                  className="hidden md:block rounded-md bg-orange-main px-5 py-2 font-medium whitespace-nowrap text-white transition-colors hover:bg-orange-dark"
+                >
                   Reserve Program
-                </Button>
+                </a>
               </div>
               {/* Mobile menu button */}
               <div className="md:hidden ml-2">
@@ -90,7 +93,10 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
             <div className="mx-auto" style={{ width: '90%' }}>
               <div className="w-full flex justify-center items-center text-center bg-transparent">
                 <span className="text-white mr-2">Have a specific request?</span>
-                <a href="/services" className="text-white underline cursor-pointer px-3 py-1 rounded">
+                <a
+                  href="/book-consultation"
+                  className="text-white underline cursor-pointer px-3 py-1 rounded"
+                >
                   Book consultation!
                 </a>
               </div>

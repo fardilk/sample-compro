@@ -1,0 +1,100 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ReserveProgramForm from '../components/ui/ReserveProgramForm';
+import Icon from '../components/global/Icon';
+import { buildCatalog } from '../lib/catalog';
+
+const catalog = await buildCatalog();
+
+// Every open batch across every programme, soonest first. The same list the
+// schedule page reads, so the two pages can never disagree about availability.
+const upcoming = catalog
+  .flatMap((category) =>
+    category.items.flatMap((item) =>
+      (item.batches ?? []).map((batch) => ({ category, item, batch })),
+    ),
+  )
+  .slice(0, 8);
+---
+
+<BaseLayout
+  title="Reserve Program"
+  description="Pilih program Excellence Plus Indonesia dan amankan kursi Anda. Reservasi dikonfirmasi dalam 1x24 jam kerja."
+>
+  <section class="bg-slate-900 text-white">
+    <div class="mx-auto py-12 md:py-14" style="width: 90%">
+      <p class="text-sm font-semibold uppercase tracking-wide text-orange-main">Reservasi</p>
+      <h1 class="mt-3 max-w-3xl text-3xl font-extrabold leading-tight md:text-4xl">
+        Reserve Program
+      </h1>
+      <p class="mt-3 max-w-2xl text-slate-200">
+        Pilih kategorinya dulu, lalu programnya. Setiap pilihan menampilkan ringkasan singkat dan
+        untuk siapa program itu dirancang, jadi Anda bisa memastikan kecocokannya sebelum memesan.
+      </p>
+    </div>
+  </section>
+
+  <section class="bg-white py-12">
+    <div class="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1.4fr_1fr]" style="width: 90%">
+      <div class="rounded-xl border border-slate-200 p-6">
+        <ReserveProgramForm client:load catalog={catalog} />
+      </div>
+
+      <aside class="space-y-4">
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+          <h2 class="font-semibold">Batch yang masih terbuka</h2>
+          {
+            upcoming.length === 0 ? (
+              <p class="mt-2 text-sm text-slate-600">
+                Belum ada batch terjadwal. Kirim saja reservasinya — kami hubungi begitu jadwal
+                berikutnya dibuka.
+              </p>
+            ) : (
+              <ul class="mt-3 space-y-3 text-sm">
+                {upcoming.map(({ category, item, batch }) => (
+                  <li>
+                    <a
+                      href={`/reserve-program?category=${category.slug}&program=${item.slug}`}
+                      class="font-medium text-slate-900 hover:underline"
+                    >
+                      {item.title}
+                    </a>
+                    <div class="text-slate-600">{batch}</div>
+                  </li>
+                ))}
+              </ul>
+            )
+          }
+        </div>
+
+        <div class="rounded-xl border border-slate-200 p-5">
+          <h2 class="font-semibold">Belum yakin program mana?</h2>
+          <p class="mt-2 text-sm text-slate-600">
+            Ceritakan kebutuhan Anda dan kami susunkan rekomendasinya.
+          </p>
+          <a
+            href="/book-consultation"
+            class="mt-3 inline-block font-semibold text-orange-main hover:text-orange-dark"
+          >
+            Book consultation →
+          </a>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 p-5">
+          <h2 class="font-semibold">Butuh bantuan?</h2>
+          <p class="mt-2 text-sm text-slate-600">
+            Memesan untuk banyak peserta, atau perlu invoice atas nama perusahaan? Hubungi kami
+            langsung.
+          </p>
+          <a
+            href="https://wa.me/6281292934488"
+            class="mt-3 inline-flex items-center gap-2 font-semibold text-orange-main hover:text-orange-dark"
+          >
+            <Icon name="fa-comments" size={18} color="currentColor" />
+            0812 9293 4488
+          </a>
+        </div>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>

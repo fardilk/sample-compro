@@ -1,0 +1,100 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ConsultationForm from '../components/ui/ConsultationForm';
+import Icon from '../components/global/Icon';
+import { buildCatalog } from '../lib/catalog';
+
+const catalog = await buildCatalog();
+
+const steps = [
+  {
+    icon: 'fa-comments',
+    title: 'Ceritakan kebutuhan Anda',
+    body: 'Isi formulir ini. Tidak perlu tahu program apa yang dibutuhkan — itu bagian kami.',
+  },
+  {
+    icon: 'fa-phone',
+    title: 'Sesi konsultasi 30 menit',
+    body: 'Kami hubungi dalam 1x24 jam kerja untuk menggali kondisi dan target Anda.',
+  },
+  {
+    icon: 'fa-file-lines',
+    title: 'Rekomendasi tertulis',
+    body: 'Anda menerima usulan program, format, durasi, dan perkiraan investasinya.',
+  },
+];
+---
+
+<BaseLayout
+  title="Book Consultation"
+  description="Ceritakan kebutuhan organisasi Anda. Tim Excellence Plus Indonesia menyusun rekomendasi program yang sesuai, tanpa biaya konsultasi awal."
+>
+  <section class="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+    <div class="mx-auto py-12 md:py-16" style="width: 90%">
+      <p class="text-sm font-semibold uppercase tracking-wide text-white/80">Konsultasi</p>
+      <h1 class="mt-3 max-w-3xl text-3xl font-extrabold leading-tight md:text-4xl">
+        Punya kebutuhan spesifik? Ceritakan dulu.
+      </h1>
+      <p class="mt-3 max-w-2xl text-white/90">
+        Halaman ini bukan formulir pendaftaran. Kami ingin mendengar apa yang sedang Anda hadapi
+        lebih dulu, baru menyusun apa yang bisa kami berikan — program, formatnya, dan seberapa
+        besar cakupannya.
+      </p>
+    </div>
+  </section>
+
+  <section class="bg-white py-12">
+    <div class="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1.4fr_1fr]" style="width: 90%">
+      <div class="rounded-xl border border-slate-200 p-6">
+        <ConsultationForm client:load catalog={catalog} />
+      </div>
+
+      <aside class="space-y-4">
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+          <h2 class="font-semibold">Bagaimana prosesnya</h2>
+          <ol class="mt-3 space-y-4">
+            {
+              steps.map((step, index) => (
+                <li class="flex gap-3">
+                  <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-orange-200 bg-white text-orange-main">
+                    <Icon name={step.icon} size={16} color="currentColor" />
+                  </div>
+                  <div>
+                    <p class="text-sm font-semibold text-slate-900">
+                      {index + 1}. {step.title}
+                    </p>
+                    <p class="text-sm text-slate-600">{step.body}</p>
+                  </div>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 p-5">
+          <h2 class="font-semibold">Sudah tahu program yang dibutuhkan?</h2>
+          <p class="mt-2 text-sm text-slate-600">
+            Langsung amankan kursinya, tanpa perlu sesi konsultasi lebih dulu.
+          </p>
+          <a
+            href="/reserve-program"
+            class="mt-3 inline-block font-semibold text-orange-main hover:text-orange-dark"
+          >
+            Reserve Program →
+          </a>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 p-5">
+          <h2 class="font-semibold">Lebih suka bicara langsung?</h2>
+          <a
+            href="https://wa.me/6281292934488"
+            class="mt-3 inline-flex items-center gap-2 font-semibold text-orange-main hover:text-orange-dark"
+          >
+            <Icon name="fa-comments" size={18} color="currentColor" />
+            0812 9293 4488
+          </a>
+        </div>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>

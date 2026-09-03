@@ -224,11 +224,18 @@ const MobileNav: React.FC<Props> = ({ open, onClose }) => {
 
         <div className="space-y-2 border-t border-gray-200 p-4">
           <a
-            href="/home/contact"
+            href="/reserve-program"
             onClick={onClose}
             className="block rounded-lg bg-orange-main px-4 py-3 text-center font-semibold text-white"
           >
             Reserve Program
+          </a>
+          <a
+            href="/book-consultation"
+            onClick={onClose}
+            className="block rounded-lg border border-orange-main px-4 py-3 text-center font-semibold text-orange-main"
+          >
+            Book Consultation
           </a>
           <a
             href={WHATSAPP}

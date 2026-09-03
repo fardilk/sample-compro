@@ -28,8 +28,8 @@ export function menuHref(group: string, item: HoverMenuItem, parent?: HoverMenuI
   if (group === 'Consultation Program') {
     const map: Record<string, string> = {
       schedule: '/schedule',
-      reserve: '/registration',
-      'contact us': '/home/contact?type=konsultasi',
+      reserve: '/reserve-program',
+      'contact us': '/book-consultation',
     };
     return map[item.label.toLowerCase()] ?? item.href ?? '#';
   }
