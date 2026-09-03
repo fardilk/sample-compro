@@ -8,6 +8,8 @@ export interface ServiceRoute {
   idSlug: string;
   title: string;
   description: string;
+  /** Topic glyph from the navigation tree, used when a programme has no photo. */
+  icon?: string;
 }
 
 const servicesRoot = mainMenu.find((m) => m.label === 'Our Services');
@@ -22,6 +24,7 @@ export const serviceRoutes: ServiceRoute[] = (servicesRoot?.children ?? []).flat
     description:
       leaf.description ??
       `Explore our ${leaf.label} program, built around measurable outcomes.`,
+    icon: leaf.icon,
   }));
 });
 

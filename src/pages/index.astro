@@ -11,6 +11,8 @@ import { getServices, mediaURL } from '../lib/cms';
 import type { CmsService } from '../lib/cms';
 import { serviceRoutes } from '../data/serviceRoutes';
 import { trainingPrograms } from '../data/trainingPrograms';
+import { programCatalog } from '../data/programCatalog';
+import { ratingOf } from '../data/programRatings';
 
 const services = await getServices();
 const cms = new Map(services.map((s) => [`${s.category}/${s.slug}`, s]));
@@ -42,11 +44,44 @@ const upcomingOf = (s: CmsService) =>
     .sort((a, b) => new Date(a.starts_at!).getTime() - new Date(b.starts_at!).getTime())
     .find((x) => new Date(x.starts_at!).getTime() > Date.now());
 
-/** Cheapest listed price, which is what a catalogue card should lead with. */
-const clean = (v: string | undefined | null) =>
-  v && /\d/.test(v) && !v.includes('[') ? v.trim() : undefined;
+/** Who each programme is for, written once in the catalogue the forms also use. */
+const audiences = new Map(
+  programCatalog.flatMap((category) =>
+    category.items.map((item) => [`${category.slug}/${item.slug}`, item.audience]),
+  ),
+);
 
-const priceOf = (s: CmsService) => s.plans.map((p) => clean(p.price)).find(Boolean);
+/** CMS formats arrive lower case ("online"); a card label reads better capitalised. */
+const formatOf = (value?: string | null) =>
+  value ? value.charAt(0).toUpperCase() + value.slice(1) : undefined;
+
+/** Inclusive day count, so a batch running the 15th to the 17th reads "3 hari". */
+const durationOf = (starts?: string | null, ends?: string | null) => {
+  if (!starts) return undefined;
+  const from = new Date(starts);
+  const to = ends ? new Date(ends) : from;
+  const days = Math.round((to.setHours(0, 0, 0, 0) - from.setHours(0, 0, 0, 0)) / 86_400_000) + 1;
+  return days > 0 ? `${days} hari` : undefined;
+};
+
+/**
+ * Photographs that ship with the site rather than living in the CMS. A
+ * programme with a real picture should use it even before anyone creates a CMS
+ * entry for it; a CMS hero_image still wins.
+ */
+const SHIPPED_COVER: Record<string, string> = {
+  'training/butler-training': '/img/butler-training-langham-card.jpg',
+};
+
+/** The card shows the topic glyph when a programme has no photograph. */
+const iconFor = (categorySlug: string) =>
+  ({
+    training: 'fa-chalkboard-teacher',
+    coaching: 'fa-hands-helping',
+    consultancy: 'fa-user-tie',
+    'executive-search': 'fa-search',
+    'employer-of-record': 'fa-globe',
+  })[categorySlug] ?? 'fa-chalkboard-teacher';
 
 // One card per route we have real content for. A route with neither a CMS
 // entry nor its own written page is still running on generic filler, so it is
@@ -60,12 +95,18 @@ for (const route of serviceRoutes) {
 
   const schedule = entry ? upcomingOf(entry) : undefined;
   cards.set(key, {
+    key,
     href: `/services/${key}`,
     title: entry?.title ?? written?.title ?? route.title,
     blurb: entry?.subtitle || written?.subtitle || route.description,
     date: schedule?.starts_at ? dateFormat.format(new Date(schedule.starts_at)) : undefined,
-    price: clean(schedule?.price) ?? (entry ? priceOf(entry) : undefined),
-    cover: entry ? await localise(entry.hero_image, 600, 340) : undefined,
+    cover: (entry ? await localise(entry.hero_image, 600, 488) : undefined) ?? SHIPPED_COVER[key],
+    icon: route.icon ?? iconFor(route.categorySlug),
+    audience: audiences.get(key) || undefined,
+    duration: durationOf(schedule?.starts_at, schedule?.ends_at),
+    format: formatOf(schedule?.format),
+    seatsLeft: schedule?.seats_left,
+    rating: ratingOf(key),
   });
 }
 
@@ -76,12 +117,18 @@ for (const service of services) {
   if (cards.has(key)) continue;
   const schedule = upcomingOf(service);
   cards.set(key, {
+    key,
     href: `/services/${key}`,
     title: service.title,
     blurb: service.subtitle ?? '',
     date: schedule?.starts_at ? dateFormat.format(new Date(schedule.starts_at)) : undefined,
-    price: clean(schedule?.price) ?? priceOf(service),
-    cover: await localise(service.hero_image, 600, 340),
+    cover: (await localise(service.hero_image, 600, 488)) ?? SHIPPED_COVER[key],
+    icon: iconFor(service.category),
+    audience: audiences.get(key) || undefined,
+    duration: durationOf(schedule?.starts_at, schedule?.ends_at),
+    format: formatOf(schedule?.format),
+    seatsLeft: schedule?.seats_left,
+    rating: ratingOf(key),
   });
 }
 
