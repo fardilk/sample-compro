@@ -11,6 +11,15 @@ const API = import.meta.env.CMS_API_URL ?? 'https://excellenceplus.id/admin-api'
 export type CmsRow = { id: number; position: number };
 export type CmsHighlight = CmsRow & { icon: string; title: string; body: string };
 export type CmsStep = CmsRow & { title: string; body: string; meta: string };
+export type CmsReason = CmsRow & {
+  icon: string;
+  stat: string;
+  title: string;
+  body: string;
+  source: string;
+  link_href: string;
+  link_text: string;
+};
 export type CmsOutcome = CmsRow & { icon: string; text: string };
 export type CmsMetric = CmsRow & { label: string; value: string };
 export type CmsFaq = CmsRow & { question: string; answer: string };
@@ -82,6 +91,7 @@ export type CmsService = {
   cta_title: string;
   cta_subtitle: string;
   highlights: CmsHighlight[];
+  reasons: CmsReason[];
   steps: CmsStep[];
   outcomes: CmsOutcome[];
   metrics: CmsMetric[];

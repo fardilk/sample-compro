@@ -4,6 +4,7 @@ import Section from './Section';
 import type { Tone } from './Section';
 import Metrics from './Metrics';
 import Features from './Features';
+import Reasons from './Reasons';
 import IconList from './IconList';
 import Pricing from './Pricing';
 import Testimonials from './Testimonials';
@@ -35,6 +36,7 @@ const DEFAULT_ORDER = [
   'intro',
   'metrics',
   'highlights',
+  'reasons',
   'outcomes',
   'steps',
   'schedules',
@@ -46,6 +48,7 @@ const DEFAULT_ORDER = [
 
 type Labels = {
   highlights: string;
+  reasons: string;
   steps: string;
   outcomes: string;
   proofs: string;
@@ -58,26 +61,29 @@ type Labels = {
 const LABELS: Record<string, Labels> = {
   program: {
     highlights: 'Untuk Siapa Program Ini',
+    reasons: 'Kenapa Anda Harus Tersertifikasi?',
     steps: 'Silabus',
     outcomes: 'Yang Akan Anda Kuasai',
-    proofs: 'Kata Peserta',
-    plans: 'Investasi',
+    proofs: 'Apa yang mereka katakan tentang program ini',
+    plans: 'Pilih Cara Anda Ikut',
     faqs: 'Pertanyaan Umum',
     schedules: 'Jadwal Terdekat',
     metrics: 'Info Umum Pelatihan',
   },
   engagement: {
     highlights: 'Apakah Ini Masalah Anda',
+    reasons: 'Kenapa Ini Layak Dikerjakan',
     steps: 'Tahapan Kerja',
     outcomes: 'Yang Anda Terima',
     proofs: 'Hasil di Lapangan',
-    plans: 'Model Kerja Sama',
+    plans: 'Pilih Cara Kita Bekerja Sama',
     faqs: 'Pertanyaan Umum',
     schedules: 'Jadwal Terdekat',
     metrics: 'Info Umum Layanan',
   },
   retainer: {
     highlights: 'Cakupan Layanan',
+    reasons: 'Kenapa Lewat Kami',
     steps: 'Proses dan Komitmen Waktu',
     outcomes: 'Kepatuhan dan Jaminan',
     proofs: 'Hasil di Lapangan',
@@ -243,6 +249,25 @@ const CmsService: React.FC<{ service: Service; heroImage?: string }> = ({ servic
         />
       ) : null,
 
+    reasons: (section, tone) =>
+      service.reasons.length > 0 ? (
+        <Reasons
+          key="reasons"
+          tone={tone}
+          title={titleOf(section, labels.reasons)}
+          subtitle={section.subtitle}
+          items={service.reasons.map((r) => ({
+            icon: r.icon || undefined,
+            stat: usable(r.stat),
+            title: r.title,
+            body: usable(r.body),
+            source: usable(r.source),
+            linkHref: r.link_href || undefined,
+            linkText: r.link_text || undefined,
+          }))}
+        />
+      ) : null,
+
     outcomes: (section, tone) =>
       service.outcomes.length > 0 ? (
         <IconList
@@ -333,7 +358,8 @@ const CmsService: React.FC<{ service: Service; heroImage?: string }> = ({ servic
           reserveHref={reserveHref}
           plans={service.plans.map((p) => ({
             name: p.name,
-            price: [p.price, p.note].filter(Boolean).join(' — '),
+            price: p.price,
+            note: p.note,
             features: p.features ?? [],
           }))}
           highlightIndex={service.plans.findIndex((p) => p.highlighted)}

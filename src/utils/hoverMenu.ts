@@ -43,6 +43,12 @@ export const mainMenu: HoverMenuItem[] = [
         label: 'Training',
         children: [
           {
+            label: 'Sertifikasi Trainer BNSP',
+            description: 'Skema KKNI Level IV, berujung uji kompetensi resmi negara.',
+            icon: 'fa-shield',
+            href: '#sertifikasi-trainer-bnsp',
+          },
+          {
             label: 'Leadership',
             description: 'Build high performing teams with half the work.',
             icon: 'fa-user-tie',

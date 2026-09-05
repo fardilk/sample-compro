@@ -43,6 +43,54 @@ const initialsOf = (name: string) =>
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('');
 
+/**
+ * Avatar art for a participant who did not send a photograph.
+ *
+ * Drawn from the name, so it is the same on every build and two people in the
+ * same grid rarely share one. It is deliberately abstract: a generated face
+ * would be a picture of someone who does not exist standing next to a real
+ * person's words, which is a different thing from a monogram.
+ */
+const AVATARS: Array<[string, string]> = [
+  ['#f87538', '#fbab74'],
+  ['#334155', '#64748b'],
+  ['#d45c1c', '#f8a06a'],
+  ['#1e293b', '#475569'],
+  ['#e2621f', '#ffc59e'],
+];
+
+const hash = (value: string) => {
+  let h = 7;
+  for (let i = 0; i < value.length; i += 1) h = (h * 31 + value.charCodeAt(i)) >>> 0;
+  return h;
+};
+
+const Avatar: React.FC<{ name: string; src?: string }> = ({ name, src }) => {
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt=""
+        width={48}
+        height={48}
+        loading="lazy"
+        className="h-12 w-12 shrink-0 rounded-full object-cover"
+      />
+    );
+  }
+
+  const [from, to] = AVATARS[hash(name) % AVATARS.length];
+  return (
+    <span
+      aria-hidden="true"
+      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
+      style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
+    >
+      {initialsOf(name)}
+    </span>
+  );
+};
+
 const Stars: React.FC<{ score: number }> = ({ score }) => (
   <span className="inline-flex items-center gap-0.5" aria-label={`${score} dari 5`}>
     {[0, 1, 2, 3, 4].map((i) => (
@@ -86,20 +134,7 @@ const Testimonials: React.FC<TestimonialsProps> = ({ items, title, subtitle, ton
           )}
 
           <figcaption className="mt-4 flex items-center gap-3 border-t border-slate-100 pt-4">
-            {t.image ? (
-              <img
-                src={t.image}
-                alt=""
-                width={40}
-                height={40}
-                loading="lazy"
-                className="h-10 w-10 rounded-full object-cover"
-              />
-            ) : (
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-50 text-sm font-bold text-orange-dark">
-                {initialsOf(t.name)}
-              </span>
-            )}
+            <Avatar name={t.name} src={t.image} />
             <span className="min-w-0">
               <span className="block truncate font-semibold text-slate-900">{t.name}</span>
               {(t.role || t.company) && (

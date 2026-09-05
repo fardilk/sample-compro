@@ -12,6 +12,25 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
   const [showConsultBanner, setShowConsultBanner] = React.useState(true);
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
+  /**
+   * On a programme page the banner earns a second, louder call: someone
+   * reading a syllabus is further along than someone browsing, and asking
+   * them to book a discovery call is asking them to go backwards.
+   *
+   * Read after mount rather than from a prop, so the header stays one cached
+   * component across the whole site instead of a different one per page. The
+   * banner renders in its browsing form first and gains the button on hydrate,
+   * which is why the layout does not move: the button occupies the row that is
+   * already there.
+   */
+  const [enrolHref, setEnrolHref] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const match = /^\/services\/([^/]+)\/([^/]+)\/?$/.exec(window.location.pathname);
+    if (!match) return;
+    setEnrolHref(`/reserve-program?category=${match[1]}&program=${match[2]}`);
+  }, []);
+
   // Handler for menu click
   const handleMenuClick = (idx: number) => {
     if (openMenuIdx === idx) {
@@ -91,14 +110,36 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
         {showConsultBanner && (
           <div className="relative w-full py-2 text-center bg-gradient-to-r from-blue-600 to-purple-600">
             <div className="mx-auto" style={{ width: '90%' }}>
-              <div className="w-full flex justify-center items-center text-center bg-transparent">
-                <span className="text-white mr-2">Have a specific request?</span>
-                <a
-                  href="/book-consultation"
-                  className="text-white underline cursor-pointer px-3 py-1 rounded"
-                >
-                  Book consultation!
-                </a>
+              <div className="flex w-full flex-wrap items-center justify-center gap-x-3 gap-y-2 bg-transparent text-center">
+                {enrolHref ? (
+                  <>
+                    <span className="text-white">Kursi batch ini terbatas.</span>
+                    <a
+                      href={enrolHref}
+                      className="enrol-pulse inline-flex items-center gap-1.5 rounded-full bg-orange-main px-4 py-1.5 text-sm font-bold text-white shadow-lg transition-transform hover:scale-105 hover:bg-orange-dark"
+                    >
+                      <Icon name="fa-bolt" size={14} color="currentColor" />
+                      Daftar Sekarang
+                    </a>
+                    <span className="text-white/70">atau</span>
+                    <a
+                      href="/book-consultation"
+                      className="cursor-pointer rounded px-1 text-white underline decoration-white/50 underline-offset-2 hover:decoration-white"
+                    >
+                      Book consultation!
+                    </a>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-white">Have a specific request?</span>
+                    <a
+                      href="/book-consultation"
+                      className="cursor-pointer rounded px-3 py-1 text-white underline"
+                    >
+                      Book consultation!
+                    </a>
+                  </>
+                )}
               </div>
               <button
                 aria-label="Close banner"

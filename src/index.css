@@ -96,3 +96,50 @@
     background: linear-gradient(90deg, var(--color-brand-500), var(--color-brand-300));
   }
 }
+
+/*
+ * The enrolment button in the header banner.
+ *
+ * A ring that grows and fades out from behind the button, rather than the
+ * button itself moving: nothing reflows, the glow is composited, and the text
+ * stays readable the whole time. It stops on hover, because a target that
+ * animates under the cursor is harder to hit, and it never starts at all for a
+ * visitor who asked for reduced motion.
+ */
+.enrol-pulse {
+  position: relative;
+}
+
+.enrol-pulse::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  background: var(--color-brand-500);
+  opacity: 0.65;
+  z-index: -1;
+  animation: enrol-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.enrol-pulse:hover::before {
+  animation-play-state: paused;
+}
+
+@keyframes enrol-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  70%,
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enrol-pulse::before {
+    animation: none;
+    opacity: 0;
+  }
+}

@@ -25,7 +25,7 @@ export interface TestimonialsContent { items: TestimonialItem[]; }
 export interface QnAItem { q: string; a: string | ReactNode; }
 export interface FAQContent { items: QnAItem[]; }
 
-export interface Plan { name: string; price: string; features: Array<string | ReactNode>; }
+export interface Plan { name: string; price: string; note?: string; features: Array<string | ReactNode>; }
 export interface PricingContent { plans: Plan[]; }
 
 export interface MetricItem { label: string; value: string; }
