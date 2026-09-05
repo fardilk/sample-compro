@@ -340,23 +340,33 @@ const CmsService: React.FC<{ service: Service; heroImage?: string }> = ({ servic
         />
       ) : null,
 
-    proofs: (section, tone) =>
-      service.proofs.length > 0 ? (
+    proofs: (section, tone) => {
+      // A proof still holding its editor's prompt is not a testimonial. Three
+      // live pages were printing "[Ganti dengan testimoni asli...]" under a
+      // "Kata Peserta" heading, attributed to "[Nama peserta]", which is worse
+      // for a reader than showing no testimonials at all.
+      const items = service.proofs
+        .map((p) => ({
+          name: usable(p.name) ?? '',
+          role: usable(p.role),
+          company: usable(p.company),
+          text: usable(p.quote) ?? usable(p.result) ?? '',
+          result: usable(p.quote) ? usable(p.result) : undefined,
+          image: p.image || undefined,
+        }))
+        .filter((p) => p.text && p.name);
+
+      return items.length > 0 ? (
         <Testimonials
           key="proofs"
           tone={tone}
           title={titleOf(section, labels.proofs)}
           subtitle={section.subtitle}
           rating={rating}
-          items={service.proofs.map((p) => ({
-            name: p.name,
-            role: p.role || undefined,
-            company: p.company || undefined,
-            text: p.quote || p.result,
-            result: p.quote ? p.result || undefined : undefined,
-          }))}
+          items={items}
         />
-      ) : null,
+      ) : null;
+    },
 
     faqs: (section, tone) =>
       service.faqs.length > 0 ? (
