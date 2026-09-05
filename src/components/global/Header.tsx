@@ -6,30 +6,11 @@ import { menuHref } from '../../utils/menuLinks';
 import MobileNav from './MobileNav';
 import Icon from './Icon';
 
-const Header: React.FC<HeaderProps> = ({ className = '' }) => {
+const Header: React.FC<HeaderProps> = ({ className = '', enrolHref }) => {
   const [openMenuIdx, setOpenMenuIdx] = React.useState<number | null>(null);
   const [activeSubIdx, setActiveSubIdx] = React.useState<number | null>(null);
   const [showConsultBanner, setShowConsultBanner] = React.useState(true);
   const [mobileOpen, setMobileOpen] = React.useState(false);
-
-  /**
-   * On a programme page the banner earns a second, louder call: someone
-   * reading a syllabus is further along than someone browsing, and asking
-   * them to book a discovery call is asking them to go backwards.
-   *
-   * Read after mount rather than from a prop, so the header stays one cached
-   * component across the whole site instead of a different one per page. The
-   * banner renders in its browsing form first and gains the button on hydrate,
-   * which is why the layout does not move: the button occupies the row that is
-   * already there.
-   */
-  const [enrolHref, setEnrolHref] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    const match = /^\/services\/([^/]+)\/([^/]+)\/?$/.exec(window.location.pathname);
-    if (!match) return;
-    setEnrolHref(`/reserve-program?category=${match[1]}&program=${match[2]}`);
-  }, []);
 
   // Handler for menu click
   const handleMenuClick = (idx: number) => {

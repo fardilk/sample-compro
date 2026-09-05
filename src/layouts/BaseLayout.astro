@@ -26,6 +26,15 @@ const canonical = new URL(publicPath, Astro.site).href;
 const imageUrl = new URL(image, Astro.site).href;
 const fullTitle = title === 'Excellence Plus Indonesia' ? title : `${title} | Excellence Plus Indonesia`;
 
+// On a programme page the header banner asks for an enrolment rather than a
+// discovery call. Resolved here so the button is in the served HTML: worked out
+// in the browser it would appear a beat after the page, which is the one moment
+// it most needs to be seen.
+const programme = /^\/services\/([^/]+)\/([^/]+)$/.exec(publicPath.replace(/\/$/, ''));
+const enrolHref = programme
+  ? `/reserve-program?category=${programme[1]}&program=${programme[2]}`
+  : undefined;
+
 const organization = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
@@ -76,7 +85,7 @@ const organization = {
     <script is:inline type="application/ld+json" set:html={JSON.stringify(organization)} />
   </head>
   <body>
-    <Header client:load />
+    <Header client:load enrolHref={enrolHref} />
     <main>
       <slot />
     </main>
