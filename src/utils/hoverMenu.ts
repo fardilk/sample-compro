@@ -244,9 +244,9 @@ export const mainMenu: HoverMenuItem[] = [
       },
       {
         label: 'Events',
-        description: 'Upcoming events and webinars.',
+        description: 'Workshop Kelola Produkmu Sendiri dengan AI, 9 November 2026.',
         icon: 'fa-calendar',
-        href: '#events',
+        href: '/workshop-kelola-produk-dengan-ai',
       },
     ],
   },
