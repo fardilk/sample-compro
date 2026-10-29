@@ -5,6 +5,13 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# A CMS publish triggers this workflow. A running build is never cancelled, since
+# that could cut off the container swap halfway; GitHub keeps only the newest
+# pending run, so a burst of writes costs one extra build, not one per write.
+concurrency:
+  group: prod-deploy
+  cancel-in-progress: false
+
 env:
   IMAGE_NAME: ghcr.io/fardilk/excellenceplusweb
   # The build reads service content from the CMS; an unreachable API fails the

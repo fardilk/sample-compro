@@ -108,11 +108,21 @@ export type CmsService = {
  */
 async function get<T>(path: string): Promise<T> {
   const url = `${API}${path}`;
-  let res: Response;
-  try {
-    res = await fetch(url);
-  } catch (cause) {
-    throw new Error(`CMS unreachable at ${url}. Refusing to build without content.`, { cause });
+  // The runner's network drops a request now and then. Because a publish in the
+  // panel now triggers a build on its own, one dropped fetch would mean the
+  // change silently never goes live, so retry before giving up.
+  let res: Response | undefined;
+  let failure: unknown;
+  for (let attempt = 1; attempt <= 6 && !res; attempt += 1) {
+    try {
+      res = await fetch(url);
+    } catch (cause) {
+      failure = cause;
+      if (attempt < 6) await new Promise((r) => setTimeout(r, attempt * 3000));
+    }
+  }
+  if (!res) {
+    throw new Error(`CMS unreachable at ${url}. Refusing to build without content.`, { cause: failure });
   }
   if (!res.ok) {
     throw new Error(`CMS returned ${res.status} for ${url}. Refusing to build without content.`);
