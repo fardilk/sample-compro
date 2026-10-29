@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig, passthroughImageService } from 'astro/config';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
@@ -16,10 +16,10 @@ export default defineConfig({
   trailingSlash: 'never',
   integrations: [react(), sitemap()],
   image: {
-    // The CMS serves uploads from this host. Allowing it lets Astro download
-    // and optimise them at build time, so the published pages carry local
-    // copies instead of pointing back at the API.
-    domains: ['excellenceplus.id'],
+    // CMS uploads are served as-is from the API host. Optimising them meant
+    // the build downloaded every image over the internet, and one dropped
+    // connection from the CI runner failed the whole deploy.
+    service: passthroughImageService(),
   },
   vite: { plugins: [tailwindcss()] },
 });
