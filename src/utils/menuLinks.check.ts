@@ -9,17 +9,23 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { serviceRoutes } from '../data/serviceRoutes';
 import { mainMenu } from './hoverMenu';
 import { menuHref, isPlaceholder } from './menuLinks';
 
-const dist = join(process.cwd(), 'dist');
+// Static pages land in dist/client once the Node adapter is on. CMS-driven pages
+// are rendered per request, so they have no file to find; the service pages
+// come from serviceRoutes, which is where the menu gets them too.
+const dist = join(process.cwd(), 'dist', 'client');
+const dynamic = new Set(serviceRoutes.map((r) => `/services/${r.categorySlug}/${r.idSlug}`));
+const renderedPerRequest = ['/', '/blog', '/schedule', '/registration', '/book-consultation', '/reserve-program', '/home/contact'];
 
 const resolves = (href: string): boolean => {
   const path = href.split(/[?#]/)[0].replace(/\/$/, '');
   // A fragment-only href has no page behind it; isPlaceholder filters those out
   // before this runs, so reaching here with an empty path is a bug in the walk.
   if (path === '') return false;
-  if (path === '/') return existsSync(join(dist, 'index.html'));
+  if (dynamic.has(path) || renderedPerRequest.includes(path)) return true;
   return (
     existsSync(join(dist, path)) ||
     existsSync(join(dist, `${path}.html`)) ||

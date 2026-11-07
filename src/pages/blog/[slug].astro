@@ -4,16 +4,11 @@ import { getImage } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleBody from '../../components/blog/ArticleBody';
 import { getArticles, articleBlocks, mediaURL } from '../../lib/cms';
-import type { CmsArticle } from '../../lib/cms';
 
-export async function getStaticPaths() {
-  const articles = await getArticles();
-  return articles
-    .filter((a) => a.slug)
-    .map((article) => ({ params: { slug: article.slug }, props: { article } }));
-}
+export const prerender = false;
 
-const article = Astro.props.article as CmsArticle;
+const article = (await getArticles()).find((a) => a.slug === Astro.params.slug);
+if (!article) return Astro.rewrite('/404');
 const blocks = articleBlocks(article);
 
 /** Pull CMS images into the build so the page does not depend on the API. */

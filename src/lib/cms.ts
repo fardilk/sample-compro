@@ -1,12 +1,12 @@
 /**
- * Build-time reads from the CMS.
+ * Reads from the CMS, made per request and cached briefly.
  *
- * Everything here runs during `astro build` and never in the browser, so the
- * published site holds a snapshot: the CMS can be down without the site being
- * down. The trade is that content only changes when a build runs.
+ * A publish or unpublish in the panel shows within CACHE_MS. If the CMS is down
+ * the last good copy keeps serving, so the site outlives the panel.
  */
 
-const API = import.meta.env.CMS_API_URL ?? 'https://excellenceplus.id/admin-api';
+const API = process.env.CMS_API_URL ?? import.meta.env.CMS_API_URL ?? 'https://excellenceplus.id/admin-api';
+const CACHE_MS = 15_000;
 
 export type CmsRow = { id: number; position: number };
 export type CmsHighlight = CmsRow & { icon: string; title: string; body: string };
@@ -101,42 +101,48 @@ export type CmsService = {
   schedules: CmsSchedule[];
 };
 
-/**
- * A build that cannot reach the CMS must fail rather than quietly publish a
- * site with the content missing. The deploy pulls before it swaps containers,
- * so a failed build leaves the previous site serving.
- */
-async function get<T>(path: string): Promise<T> {
-  const url = `${API}${path}`;
-  // The runner's network drops a request now and then. Because a publish in the
-  // panel now triggers a build on its own, one dropped fetch would mean the
-  // change silently never goes live, so retry before giving up.
-  let res: Response | undefined;
+const cache = new Map<string, { at: number; value: unknown }>();
+const inflight = new Map<string, Promise<unknown>>();
+
+async function fetchJSON<T>(url: string): Promise<T> {
   let failure: unknown;
-  for (let attempt = 1; attempt <= 6 && !res; attempt += 1) {
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
     try {
-      res = await fetch(url);
+      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      if (res.ok) return (await res.json()) as T;
+      failure = new Error(`CMS returned ${res.status} for ${url}`);
     } catch (cause) {
       failure = cause;
-      if (attempt < 6) await new Promise((r) => setTimeout(r, attempt * 3000));
     }
   }
-  if (!res) {
-    throw new Error(`CMS unreachable at ${url}. Refusing to build without content.`, { cause: failure });
-  }
-  if (!res.ok) {
-    throw new Error(`CMS returned ${res.status} for ${url}. Refusing to build without content.`);
-  }
-  return (await res.json()) as T;
+  throw failure;
 }
 
-let servicesCache: Promise<CmsService[]> | null = null;
+async function get<T>(path: string): Promise<T> {
+  const hit = cache.get(path);
+  if (hit && Date.now() - hit.at < CACHE_MS) return hit.value as T;
+  // Concurrent requests share one upstream call.
+  let pending = inflight.get(path) as Promise<T> | undefined;
+  if (!pending) {
+    pending = fetchJSON<T>(`${API}${path}`)
+      .then((value) => {
+        cache.set(path, { at: Date.now(), value });
+        return value;
+      })
+      .finally(() => inflight.delete(path));
+    inflight.set(path, pending);
+  }
+  try {
+    return await pending;
+  } catch (err) {
+    if (hit) return hit.value as T; // stale beats down
+    throw err;
+  }
+}
 
 /** Published service pages, keyed by "category/slug" at the call site. */
 export function getServices(): Promise<CmsService[]> {
-  // Several pages ask for this during one build; fetch it once.
-  servicesCache ??= get<CmsService[]>('/api/services?published=true');
-  return servicesCache;
+  return get<CmsService[]>('/api/services?published=true');
 }
 
 /** Absolute URL for an image stored by the CMS, for Astro to download. */
@@ -186,12 +192,9 @@ export type CmsArticle = {
   tags: Array<{ id: number; name: string; slug: string }> | null;
 };
 
-let articlesCache: Promise<CmsArticle[]> | null = null;
-
 /** Published articles, newest first. Drafts never reach the build. */
 export function getArticles(): Promise<CmsArticle[]> {
-  articlesCache ??= get<CmsArticle[]>('/api/articles?published=true');
-  return articlesCache;
+  return get<CmsArticle[]>('/api/articles?published=true');
 }
 
 export const articleBlocks = (a: CmsArticle): CmsArticleBlock[] =>

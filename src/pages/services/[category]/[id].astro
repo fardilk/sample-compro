@@ -10,38 +10,29 @@ import { trainingPrograms } from '../../../data/trainingPrograms';
 import { getServices, mediaURL, hasContent } from '../../../lib/cms';
 import type { CmsService as CmsServiceType } from '../../../lib/cms';
 
-export async function getStaticPaths() {
-  const cms = await getServices();
-  const byPath = new Map(cms.map((s) => [`${s.category}/${s.slug}`, s]));
+export const prerender = false;
 
-  // Routes still come from the navigation tree, so a page the menu links to
-  // cannot disappear just because it has not been moved into the CMS yet. A CMS
-  // entry for the same path takes over; the rest keep their in-repo content.
-  const fromMenu = serviceRoutes.map((r) => ({
-    params: { category: r.categorySlug, id: r.idSlug },
-    props: { ...r, cms: byPath.get(`${r.categorySlug}/${r.idSlug}`) ?? null },
-  }));
+// Routes still come from the navigation tree, so a page the menu links to
+// cannot disappear just because it has not been moved into the CMS yet. A CMS
+// entry for the same path takes over; the rest keep their in-repo content. A
+// CMS-only page exists only while it is published.
+const { category, id } = Astro.params;
+const found = (await getServices()).find((s) => s.category === category && s.slug === id) ?? null;
+const route = serviceRoutes.find((r) => r.categorySlug === category && r.idSlug === id);
+if (!route && !found) return Astro.rewrite('/404');
+const props = route
+  ? { ...route, cms: found }
+  : {
+      categorySlug: found!.category,
+      categoryLabel: found!.category_label,
+      idSlug: found!.slug,
+      title: found!.title,
+      description: found!.subtitle,
+      cms: found,
+    };
 
-  const known = new Set(serviceRoutes.map((r) => `${r.categorySlug}/${r.idSlug}`));
-  const cmsOnly = cms
-    .filter((s) => !known.has(`${s.category}/${s.slug}`))
-    .map((s) => ({
-      params: { category: s.category, id: s.slug },
-      props: {
-        categorySlug: s.category,
-        categoryLabel: s.category_label,
-        idSlug: s.slug,
-        title: s.title,
-        description: s.subtitle,
-        cms: s,
-      },
-    }));
-
-  return [...fromMenu, ...cmsOnly];
-}
-
-const { categorySlug, categoryLabel, idSlug, title, description } = Astro.props;
-const cms = Astro.props.cms as CmsServiceType | null;
+const { categorySlug, categoryLabel, idSlug, title, description } = props;
+const cms = props.cms as CmsServiceType | null;
 
 /**
  * Pull every CMS image into the build output. Left as API URLs, the published
